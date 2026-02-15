@@ -27,6 +27,22 @@ const routes = [
     component: () => import('../views/auth/ForgotPassword.vue')
   },
   {
+    path: '/rooms',
+    name: 'RoomList',
+    component: () => import('../views/rooms/RoomList.vue')
+  },
+  {
+    path: '/rooms/create',
+    name: 'CreateRoom',
+    component: () => import('../views/rooms/CreateRoom.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/rooms/:id',
+    name: 'RoomDetails',
+    component: () => import('../views/rooms/RoomDetails.vue')
+  },
+  {
     path: '/profile',
     name: 'Profile',
     component: Profile,

@@ -23,3 +23,16 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Verify
 SELECT * FROM users;
+
+-- Create Study Rooms Table
+CREATE TABLE IF NOT EXISTS study_rooms (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  topic VARCHAR(255) NOT NULL,
+  description TEXT,
+  max_capacity INTEGER DEFAULT 10,
+  cover_image VARCHAR(512),
+  created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+

@@ -23,7 +23,7 @@ export const useAuthStore = defineStore('auth', {
         this.token = res.data.token
         localStorage.setItem('token', res.data.token)
         this.user = res.data.user
-        router.push('/profile')
+        router.push('/rooms')
       } catch (err) {
         this.error = err.response?.data?.errors?.[0]?.msg || err.response?.data?.msg || 'Registration failed'
         throw err
@@ -40,7 +40,7 @@ export const useAuthStore = defineStore('auth', {
         this.token = res.data.token
         localStorage.setItem('token', res.data.token)
         this.user = res.data.user
-        router.push('/profile')
+        router.push('/rooms')
       } catch (err) {
         this.error = err.response?.data?.msg || 'Login failed'
         throw err
