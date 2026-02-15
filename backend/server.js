@@ -32,6 +32,10 @@ app.get('/', (req, res) => {
   });
 });
 
+
+// Routes
+app.use('/api/auth', require('./routes/authRoutes'));
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({
@@ -56,12 +60,15 @@ const startServer = async () => {
     // Test database connection first
     await testConnection();
     
-    // Start Express server
-    app.listen(PORT, () => {
-      console.log(`🚀 Server is running on port ${PORT}`);
-      console.log(`📍 Environment: ${process.env.NODE_ENV}`);
-      console.log(`🔗 API URL: http://localhost:${PORT}`);
-    });
+// Routes
+
+
+// Start Express server
+app.listen(PORT, () => {
+  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`📍 Environment: ${process.env.NODE_ENV}`);
+  console.log(`🔗 API URL: http://localhost:${PORT}`);
+});
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);
