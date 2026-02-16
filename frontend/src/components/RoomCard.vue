@@ -1,15 +1,32 @@
 <template>
-  <div class="room-card">
+  <div class="room-card" @mouseleave="showMenu = false">
     <div class="card-image" :style="{ backgroundImage: `url(${getRoomImage(room)})` }">
       <span class="topic-badge">{{ room.topic }}</span>
-      
-      <button v-if="isOwner" @click.prevent="$emit('edit', room)" class="edit-icon-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      </button>
     </div>
     
     <div class="card-content">
-      <h3>{{ room.name }}</h3>
+      <div class="header-row">
+        <h3>{{ room.name }}</h3>
+        
+        <!-- 3-dot Menu -->
+        <div class="menu-container" v-if="isOwner">
+            <button class="menu-btn" @click.prevent.stop="toggleMenu">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+            </button>
+            
+            <div v-if="showMenu" class="dropdown-menu">
+                <button @click.prevent.stop="handleEdit" class="dropdown-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    Edit
+                </button>
+                <button @click.prevent.stop="handleDelete" class="dropdown-item delete">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                    Delete
+                </button>
+            </div>
+        </div>
+      </div>
+
       <p class="description">{{ room.description || 'Join this study group to collaborate and share resources.' }}</p>
       
       <div class="card-footer">
@@ -26,7 +43,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 
 const props = defineProps({
@@ -36,16 +53,30 @@ const props = defineProps({
   }
 })
 
-defineEmits(['edit'])
+const emit = defineEmits(['edit', 'delete'])
 
 const authStore = useAuthStore()
+const showMenu = ref(false)
 
 const isOwner = computed(() => {
   return authStore.user && props.room.created_by === authStore.user.id
 })
 
+const toggleMenu = () => {
+    showMenu.value = !showMenu.value
+}
+
+const handleEdit = () => {
+    showMenu.value = false
+    emit('edit', props.room)
+}
+
+const handleDelete = () => {
+    showMenu.value = false
+    emit('delete', props.room)
+}
+
 const getRoomImage = (room) => {
-// ...
   if (room.cover_image) {
     return `http://localhost:5000/${room.cover_image}`;
   }
@@ -106,13 +137,87 @@ const getRoomImage = (room) => {
   flex-grow: 1;
 }
 
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+    position: relative;
+}
+
 h3 {
   font-size: 1.1rem;
   font-weight: 700;
   color: #111827;
-  margin-bottom: 0.5rem;
   line-height: 1.4;
+  margin: 0;
+  flex: 1;
+  padding-right: 0.5rem;
 }
+
+/* Menu Button Styles */
+.menu-container {
+    position: relative;
+}
+
+.menu-btn {
+    background: transparent;
+    border: none;
+    color: #6B7280;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.menu-btn:hover {
+    background-color: #F3F4F6;
+    color: #111827;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 6px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    min-width: 120px;
+    z-index: 10;
+    padding: 0.25rem 0;
+    overflow: hidden;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    background: none;
+    border: none;
+    font-size: 0.875rem;
+    color: #374151;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background-color: #F3F4F6;
+}
+
+.dropdown-item.delete {
+    color: #DC2626;
+}
+
+.dropdown-item.delete:hover {
+    background-color: #FEF2F2;
+}
+
 
 .description {
   color: #6B7280;
@@ -171,29 +276,5 @@ h3 {
     background-color: #DBEAFE;
     color: #1D4ED8;
     border-color: #93C5FD;
-}
-
-.edit-icon-btn {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background-color: rgba(255, 255, 255, 0.9);
-  color: #4B5563;
-  border: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  z-index: 2;
-}
-
-.edit-icon-btn:hover {
-  background-color: #2563EB;
-  color: white;
 }
 </style>

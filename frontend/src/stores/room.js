@@ -132,6 +132,23 @@ export const useRoomStore = defineStore('room', {
         } finally {
             this.loading = false
         }
+    },
+
+    async deleteRoom(id) {
+      this.loading = true
+      this.error = null
+      const authStore = useAuthStore()
+      try {
+        await axios.delete(`http://localhost:5000/api/rooms/${id}`, {
+          headers: { 'x-auth-token': authStore.token }
+        })
+        this.rooms = this.rooms.filter(room => room.id !== id)
+      } catch (err) {
+        this.error = err.response?.data?.msg || 'Failed to delete room'
+        throw err
+      } finally {
+        this.loading = false
+      }
     }
   }
 })

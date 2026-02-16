@@ -34,4 +34,15 @@ router.post(
 // @access  Private
 router.get('/me', auth, authController.getProfile);
 
+// @route   PUT api/auth/profile
+// @desc    Update user profile
+// @access  Private
+router.put('/profile', auth, authController.updateProfile);
+
+// @route   POST api/auth/avatar
+// @desc    Upload user avatar
+// @access  Private
+const upload = require('../middleware/uploadMiddleware');
+router.post('/avatar', [auth, upload.single('avatar')], authController.uploadAvatar);
+
 module.exports = router;

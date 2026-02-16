@@ -36,7 +36,7 @@
     <div class="user-footer" v-if="authStore.user">
       <div 
         class="avatar" 
-        :style="authStore.user.avatar_url ? { backgroundImage: `url(${authStore.user.avatar_url})` } : {}"
+        :style="authStore.user.avatar_url ? { backgroundImage: `url(${getAvatarUrl(authStore.user.avatar_url)})` } : {}"
         :class="{ 'has-image': authStore.user.avatar_url }"
       >
         <span v-if="!authStore.user.avatar_url">{{ getInitials(authStore.user.full_name) }}</span>
@@ -56,6 +56,12 @@
 import { useAuthStore } from '../stores/auth'
 
 const authStore = useAuthStore()
+
+const getAvatarUrl = (path) => {
+    if (!path) return ''
+    if (path.startsWith('http')) return path
+    return `http://localhost:5000/${path}`
+}
 
 const getInitials = (name) => {
   return name

@@ -23,7 +23,7 @@
             
             <button 
                 v-if="localRoom.is_member" 
-                @click="leaveRoom" 
+                @click="openLeaveModal" 
                 class="btn btn-danger-outline"
                 :disabled="isProcessing"
             >
@@ -50,7 +50,7 @@
               <img 
                 v-for="member in localRoom.members.slice(0, 5)" 
                 :key="member.id" 
-                :src="member.avatar_url || `https://ui-avatars.com/api/?name=${member.full_name}&background=random`" 
+                :src="getAvatarUrl(member)" 
                 :alt="member.full_name" 
                 :title="member.full_name"
               />
@@ -136,7 +136,7 @@
               <div v-if="allMembers && allMembers.length > 0" class="members-list">
                   <div v-for="member in allMembers" :key="member.id" class="member-item">
                       <img 
-                          :src="member.avatar_url || `https://ui-avatars.com/api/?name=${member.full_name}&background=random`" 
+                          :src="getAvatarUrl(member)" 
                           :alt="member.full_name" 
                           class="member-avatar"
                       />
@@ -151,6 +151,20 @@
           </div>
       </div>
   </div>
+
+  <ActionConfirmationModal
+    v-if="showLeaveModal"
+    title="Leave Room"
+    :target-name="localRoom?.name"
+    action-type="leave"
+    required-text="leave"
+    confirm-button-text="Leave Room"
+    processing-text="Leaving..."
+    variant="warning"
+    :is-processing="isLeaving"
+    @close="showLeaveModal = false"
+    @confirm="handleLeaveConfirm"
+  />
 </template>
 
 <script setup>
@@ -159,6 +173,7 @@ import { useRoute } from 'vue-router'
 import { useRoomStore } from '../../stores/room'
 import { useAuthStore } from '../../stores/auth' 
 import axios from 'axios'
+import ActionConfirmationModal from '../../components/ActionConfirmationModal.vue'
 
 const route = useRoute()
 const roomStore = useRoomStore()
@@ -258,16 +273,39 @@ const joinRoom = async () => {
 }
 
 const leaveRoom = async () => {
-    if (!confirm('Are you sure you want to leave this room?')) return
-    isProcessing.value = true
+    // Replaced by openLeaveModal
+}
+
+// Leave Modal Logic
+const showLeaveModal = ref(false)
+const isLeaving = ref(false)
+
+const openLeaveModal = () => {
+    showLeaveModal.value = true
+}
+
+const handleLeaveConfirm = async () => {
+    isLeaving.value = true
     try {
         await roomStore.leaveRoom(localRoom.value.id)
+        showLeaveModal.value = false
         await fetchRoomData()
     } catch (err) {
         console.error('Failed to leave room', err)
+        alert('Failed to leave room: ' + err.message)
     } finally {
-        isProcessing.value = false
+        isLeaving.value = false
     }
+}
+
+const getAvatarUrl = (member) => {
+    if (member.avatar_url) {
+        if (member.avatar_url.startsWith('http')) {
+            return member.avatar_url
+        }
+        return `http://localhost:5000/${member.avatar_url}`
+    }
+    return `https://ui-avatars.com/api/?name=${member.full_name}&background=random`
 }
 
 const formatDate = (dateString) => {

@@ -74,8 +74,18 @@
         :key="room.id" 
         :room="room" 
         @edit="openEditModal"
+        @delete="openDeleteModal"
       />
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <DeleteConfirmationModal
+      v-if="showDeleteModal"
+      :room-name="roomToDelete?.name"
+      :is-processing="isDeleting"
+      @close="showDeleteModal = false"
+      @confirm="handleDeleteConfirm"
+    />
   </div>
 </template>
 
@@ -84,6 +94,7 @@ import { ref, onMounted } from 'vue'
 import { useRoomStore } from '../../stores/room'
 import RoomCard from '../../components/RoomCard.vue'
 import CreateRoomModal from '../../components/CreateRoomModal.vue'
+import DeleteConfirmationModal from '../../components/DeleteConfirmationModal.vue'
 
 const roomStore = useRoomStore()
 const searchQuery = ref('')
@@ -140,6 +151,31 @@ const handleRoomUpdated = () => {
 const handleCloseModal = () => {
     showCreateModal.value = false
     editingRoom.value = null
+}
+
+const showDeleteModal = ref(false)
+const roomToDelete = ref(null)
+const isDeleting = ref(false)
+
+const openDeleteModal = (room) => {
+    roomToDelete.value = room
+    showDeleteModal.value = true
+}
+
+const handleDeleteConfirm = async () => {
+    if (!roomToDelete.value) return
+    
+    isDeleting.value = true
+    try {
+        await roomStore.deleteRoom(roomToDelete.value.id)
+        showDeleteModal.value = false
+        roomToDelete.value = null
+    } catch (err) {
+        console.error('Delete failed:', err)
+        alert('Failed to delete room: ' + err.message)
+    } finally {
+        isDeleting.value = false
+    }
 }
 </script>
 
