@@ -1,9 +1,7 @@
 const { pool } = require('../config/database');
 const { validationResult } = require('express-validator');
 
-// @route   POST api/rooms
-// @desc    Create a new study room
-// @access  Private
+
 exports.createRoom = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -13,7 +11,7 @@ exports.createRoom = async (req, res) => {
   const { name, topic, description, max_capacity } = req.body;
   const cover_image = req.file ? req.file.path.replace(/\\/g, "/") : null; // Normalize path
 
-  // Validate max_capacity range
+
   const capacity = parseInt(max_capacity) || 10;
   if (capacity < 2 || capacity > 50) {
     return res.status(400).json({ errors: [{ msg: 'Max capacity must be between 2 and 50' }] });
@@ -32,9 +30,6 @@ exports.createRoom = async (req, res) => {
   }
 };
 
-// Get all study rooms with optional search (name or topic)
-// @access  Public (or Private if preferred)
-// Get all rooms (with member count)
 exports.getAllRooms = async (req, res) => {
   const { search, sort } = req.query;
   const userId = req.user ? req.user.id : null;
@@ -82,9 +77,6 @@ exports.getAllRooms = async (req, res) => {
   }
 };
 
-// @route   GET api/rooms/:id
-// @desc    Get room by ID
-// @access  Public
 exports.getRoomById = async (req, res) => {
   try {
     const room = await pool.query(`
@@ -107,7 +99,7 @@ exports.getRoomById = async (req, res) => {
       return res.status(404).json({ msg: 'Room not found' });
     }
 
-    // Check if current user is a member
+
     let isMember = false;
     if (req.user) {
         const checkMember = await pool.query('SELECT * FROM room_members WHERE room_id = $1 AND user_id = $2', [req.params.id, req.user.id]);
@@ -121,31 +113,31 @@ exports.getRoomById = async (req, res) => {
   }
 };
 
-// Join a room
+
 exports.joinRoom = async (req, res) => {
     try {
         const roomId = req.params.id;
         const userId = req.user.id;
 
-        // Check if room exists and get capacity
+
         const room = await pool.query('SELECT * FROM study_rooms WHERE id = $1', [roomId]);
         if (room.rows.length === 0) {
             return res.status(404).json({ msg: 'Room not found' });
         }
         
-        // Check if already a member
+
         const existingMember = await pool.query('SELECT * FROM room_members WHERE room_id = $1 AND user_id = $2', [roomId, userId]);
         if (existingMember.rows.length > 0) {
             return res.status(400).json({ msg: 'Already a member of this room' });
         }
 
-        // Check capacity
+
         const memberCount = await pool.query('SELECT COUNT(*) FROM room_members WHERE room_id = $1', [roomId]);
         if (parseInt(memberCount.rows[0].count) >= room.rows[0].max_capacity) {
             return res.status(400).json({ msg: 'Room is full' });
         }
 
-        // Add member
+
         await pool.query('INSERT INTO room_members (room_id, user_id) VALUES ($1, $2)', [roomId, userId]);
 
         res.json({ msg: 'Joined room successfully' });
@@ -155,7 +147,6 @@ exports.joinRoom = async (req, res) => {
     }
 };
 
-// Update a room
 exports.updateRoom = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -169,7 +160,7 @@ exports.updateRoom = async (req, res) => {
         const roomId = req.params.id;
         const userId = req.user.id;
 
-        // Check ownership
+
         const room = await pool.query('SELECT * FROM study_rooms WHERE id = $1', [roomId]);
         
         if (room.rows.length === 0) {
@@ -180,7 +171,7 @@ exports.updateRoom = async (req, res) => {
             return res.status(401).json({ msg: 'User not authorized' });
         }
 
-        // Validate max_capacity range if provided
+
         let capacity = room.rows[0].max_capacity;
         if (max_capacity) {
             capacity = parseInt(max_capacity);
@@ -189,7 +180,7 @@ exports.updateRoom = async (req, res) => {
             }
         }
 
-        // Construct update query dynamically
+
         let updateQuery = 'UPDATE study_rooms SET name = $1, topic = $2, description = $3, max_capacity = $4';
         let queryParams = [
             name || room.rows[0].name,
@@ -215,19 +206,18 @@ exports.updateRoom = async (req, res) => {
     }
 };
 
-// Leave a room
 exports.leaveRoom = async (req, res) => {
     try {
         const roomId = req.params.id;
         const userId = req.user.id;
 
-        // Check if room exists
+
         const room = await pool.query('SELECT * FROM study_rooms WHERE id = $1', [roomId]);
         if (room.rows.length === 0) {
             return res.status(404).json({ msg: 'Room not found' });
         }
 
-        // Remove member
+
         await pool.query('DELETE FROM room_members WHERE room_id = $1 AND user_id = $2', [roomId, userId]);
 
         res.json({ msg: 'Left room successfully' });
@@ -237,7 +227,6 @@ exports.leaveRoom = async (req, res) => {
     }
 };
 
-// Upload material
 exports.uploadMaterial = async (req, res) => {
     try {
         const roomId = req.params.id;
@@ -251,7 +240,7 @@ exports.uploadMaterial = async (req, res) => {
         const fileName = req.file.originalname;
         const fileSize = req.file.size;
 
-        // Check if user is member (optional, but good practice)
+
         const isMember = await pool.query('SELECT * FROM room_members WHERE room_id = $1 AND user_id = $2', [roomId, userId]);
         const isOwner = await pool.query('SELECT * FROM study_rooms WHERE id = $1 AND created_by = $2', [roomId, userId]);
 
@@ -264,7 +253,7 @@ exports.uploadMaterial = async (req, res) => {
             [roomId, userId, fileName, filePath, fileSize]
         );
 
-        // Fetch user name for response
+
         const user = await pool.query('SELECT full_name FROM users WHERE id = $1', [userId]);
         
         const material = {
@@ -279,7 +268,6 @@ exports.uploadMaterial = async (req, res) => {
     }
 };
 
-// Get materials
 exports.getMaterials = async (req, res) => {
     try {
         const roomId = req.params.id;
@@ -308,30 +296,26 @@ exports.getMaterials = async (req, res) => {
     }
 };
 
-// Toggle save material
-// @route   POST api/materials/:id/save
-// @desc    Toggle save status of a material
-// @access  Private
 exports.toggleSaveMaterial = async (req, res) => {
     try {
         const materialId = req.params.id;
         const userId = req.user.id;
 
-        // Check if material exists
+
         const material = await pool.query('SELECT * FROM room_materials WHERE id = $1', [materialId]);
         if (material.rows.length === 0) {
             return res.status(404).json({ msg: 'Material not found' });
         }
 
-        // Check if already saved
+
         const saved = await pool.query('SELECT * FROM saved_materials WHERE user_id = $1 AND material_id = $2', [userId, materialId]);
 
         if (saved.rows.length > 0) {
-            // Unsave
+
             await pool.query('DELETE FROM saved_materials WHERE user_id = $1 AND material_id = $2', [userId, materialId]);
             res.json({ msg: 'Material unsaved', is_saved: false });
         } else {
-            // Save
+
             await pool.query('INSERT INTO saved_materials (user_id, material_id) VALUES ($1, $2)', [userId, materialId]);
             res.json({ msg: 'Material saved', is_saved: true });
         }
@@ -341,10 +325,6 @@ exports.toggleSaveMaterial = async (req, res) => {
     }
 };
 
-// Get saved materials
-// @route   GET api/materials/saved
-// @desc    Get all saved materials for user
-// @access  Private
 exports.getSavedMaterials = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -379,10 +359,6 @@ exports.getSavedMaterials = async (req, res) => {
     }
 };
 
-// Clear all saved materials
-// @route   DELETE api/rooms/materials/saved
-// @desc    Clear all saved materials
-// @access  Private
 exports.clearSavedMaterials = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -394,16 +370,12 @@ exports.clearSavedMaterials = async (req, res) => {
     }
 };
 
-// Delete a room
-// @route   DELETE api/rooms/:id
-// @desc    Delete a room
-// @access  Private (Owner only)
 exports.deleteRoom = async (req, res) => {
     try {
         const roomId = req.params.id;
         const userId = req.user.id;
 
-        // Check ownership
+
         const room = await pool.query('SELECT * FROM study_rooms WHERE id = $1', [roomId]);
         
         if (room.rows.length === 0) {
@@ -423,10 +395,6 @@ exports.deleteRoom = async (req, res) => {
     }
 };
 
-// Get my rooms
-// @route   GET api/rooms/my-rooms
-// @desc    Get current user's rooms (created or joined)
-// @access  Private
 exports.getMyRooms = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -436,7 +404,7 @@ exports.getMyRooms = async (req, res) => {
     let params = [userId];
 
     if (filter === 'created') {
-      // Get rooms created by the user
+
       queryText = `
         SELECT 
           s.*, 
@@ -449,7 +417,7 @@ exports.getMyRooms = async (req, res) => {
         ORDER BY s.created_at DESC
       `;
     } else {
-      // Get all active rooms (joined)
+
       // Since creating a room doesn't strictly mean joining in current logic (unless we auto-join), 
       // we need to decide if we query room_members or (room_members OR created_by).
       // Assuming creators join their rooms:
@@ -475,16 +443,13 @@ exports.getMyRooms = async (req, res) => {
   }
 };
 
-// @route   POST api/rooms/materials/:id/report
-// @desc    Report a study material
-// @access  Private
 exports.reportMaterial = async (req, res) => {
   try {
     const materialId = req.params.id;
     const userId = req.user.id;
     const { comment } = req.body;
 
-    // Validate comment
+
     if (!comment || comment.trim().length === 0) {
       return res.status(400).json({ msg: 'Comment is required' });
     }
@@ -493,13 +458,13 @@ exports.reportMaterial = async (req, res) => {
       return res.status(400).json({ msg: 'Comment must be 500 characters or less' });
     }
 
-    // Check if material exists
+
     const material = await pool.query('SELECT * FROM room_materials WHERE id = $1', [materialId]);
     if (material.rows.length === 0) {
       return res.status(404).json({ msg: 'Material not found' });
     }
 
-    // Insert report
+
     await pool.query(
       'INSERT INTO material_reports (material_id, user_id, comment) VALUES ($1, $2, $3)',
       [materialId, userId, comment.trim()]
@@ -512,9 +477,6 @@ exports.reportMaterial = async (req, res) => {
   }
 };
 
-// @route   GET api/rooms/materials/:id/reports
-// @desc    Get all reports for a material (admin/creator only)
-// @access  Private
 exports.getMaterialReports = async (req, res) => {
   try {
     const materialId = req.params.id;
@@ -539,9 +501,6 @@ exports.getMaterialReports = async (req, res) => {
   }
 };
 
-// @route   GET api/rooms/materials/reported/all
-// @desc    Get all reported materials (admin view)
-// @access  Private
 exports.getAllReportedMaterials = async (req, res) => {
   try {
     const materials = await pool.query(`

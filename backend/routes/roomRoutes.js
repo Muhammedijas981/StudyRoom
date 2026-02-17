@@ -6,9 +6,7 @@ const auth = require('../middleware/authMiddleware');
 
 const upload = require('../middleware/uploadMiddleware');
 
-// @route   POST api/rooms
-// @desc    Create a room
-// @access  Private
+
 /**
  * @swagger
  * /api/rooms:
@@ -55,9 +53,7 @@ router.post(
   roomController.createRoom
 );
 
-// @route   GET api/rooms
-// @desc    Get all rooms
-// @access  Private
+
 /**
  * @swagger
  * /api/rooms:
@@ -72,9 +68,7 @@ router.post(
  */
 router.get('/', auth, roomController.getAllRooms);
 
-// @route   GET api/rooms/my-rooms
-// @desc    Get user's rooms
-// @access  Private
+
 /**
  * @swagger
  * /api/rooms/my-rooms:
@@ -89,9 +83,7 @@ router.get('/', auth, roomController.getAllRooms);
  */
 router.get('/my-rooms', auth, roomController.getMyRooms);
 
-// @route   GET api/rooms/materials/saved
-// @desc    Get saved materials
-// @access  Private
+
 /**
  * @swagger
  * /api/rooms/materials/saved:
@@ -106,9 +98,7 @@ router.get('/my-rooms', auth, roomController.getMyRooms);
  */
 router.get('/materials/saved', auth, roomController.getSavedMaterials);
 
-// @route   DELETE api/rooms/materials/saved
-// @desc    Clear all saved materials
-// @access  Private
+
 /**
  * @swagger
  * /api/rooms/materials/saved:
@@ -123,9 +113,7 @@ router.get('/materials/saved', auth, roomController.getSavedMaterials);
  */
 router.delete('/materials/saved', auth, roomController.clearSavedMaterials);
 
-// @route   GET api/rooms/materials/reported/all
-// @desc    Get all reported materials
-// @access  Private
+
 /**
  * @swagger
  * /api/rooms/materials/reported/all:
@@ -140,9 +128,7 @@ router.delete('/materials/saved', auth, roomController.clearSavedMaterials);
  */
 router.get('/materials/reported/all', auth, roomController.getAllReportedMaterials);
 
-// @route   GET api/rooms/:id
-// @desc    Get room by ID
-// @access  Private
+
 /**
  * @swagger
  * /api/rooms/{id}:
@@ -207,9 +193,7 @@ router.post('/:id/join', auth, roomController.joinRoom);
  */
 router.post('/:id/leave', auth, roomController.leaveRoom);
 
-// @route   PUT api/rooms/:id
-// @desc    Update a room
-// @access  Private (Owner only)
+
 /**
  * @swagger
  * /api/rooms/{id}:
@@ -257,9 +241,7 @@ router.put(
     roomController.updateRoom
 );
 
-// @route   DELETE api/rooms/:id
-// @desc    Delete a room
-// @access  Private (Owner only)
+
 /**
  * @swagger
  * /api/rooms/{id}:
@@ -282,9 +264,7 @@ router.put(
  */
 router.delete('/:id', auth, roomController.deleteRoom);
 
-// @route   POST api/rooms/:id/materials
-// @desc    Upload material to room
-// @access  Private (Member only)
+
 /**
  * @swagger
  * /api/rooms/{id}/materials:
@@ -323,9 +303,7 @@ router.post(
     roomController.uploadMaterial
 );
 
-// @route   GET api/rooms/:id/materials
-// @desc    Get all materials for a room
-// @access  Public (or Private)
+
 /**
  * @swagger
  * /api/rooms/{id}/materials:
@@ -344,9 +322,7 @@ router.post(
  */
 router.get('/:id/materials', roomController.getMaterials);
 
-// @route   POST api/rooms/materials/:id/save
-// @desc    Toggle save status of material
-// @access  Private
+
 /**
  * @swagger
  * /api/rooms/materials/{id}/save:
@@ -367,9 +343,7 @@ router.get('/:id/materials', roomController.getMaterials);
  */
 router.post('/materials/:id/save', auth, roomController.toggleSaveMaterial);
 
-// @route   POST api/rooms/materials/:id/report
-// @desc    Report a study material
-// @access  Private
+
 /**
  * @swagger
  * /api/rooms/materials/{id}/report:
@@ -398,9 +372,7 @@ router.post('/materials/:id/save', auth, roomController.toggleSaveMaterial);
  */
 router.post('/materials/:id/report', auth, roomController.reportMaterial);
 
-// @route   GET api/rooms/materials/:id/reports
-// @desc    Get all reports for a material
-// @access  Private
+
 /**
  * @swagger
  * /api/rooms/materials/{id}/reports:

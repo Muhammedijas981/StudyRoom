@@ -4,9 +4,7 @@ const { check } = require('express-validator');
 const authController = require('../controllers/authController');
 const auth = require('../middleware/authMiddleware');
 
-// @route   POST api/auth/register
-// @desc    Register a user
-// @access  Public
+
 /**
  * @swagger
  * /api/auth/register:
@@ -54,9 +52,7 @@ router.post(
   authController.register
 );
 
-// @route   POST api/auth/login
-// @desc    Auth user & get token
-// @access  Public
+
 /**
  * @swagger
  * /api/auth/login:
@@ -99,9 +95,7 @@ router.post(
   authController.login
 );
 
-// @route   GET api/auth/me
-// @desc    Get logged in user
-// @access  Private
+
 /**
  * @swagger
  * /api/auth/me:
@@ -118,9 +112,7 @@ router.post(
  */
 router.get('/me', auth, authController.getProfile);
 
-// @route   PUT api/auth/profile
-// @desc    Update user profile
-// @access  Private
+
 /**
  * @swagger
  * /api/auth/profile:
@@ -147,9 +139,7 @@ router.get('/me', auth, authController.getProfile);
  */
 router.put('/profile', auth, authController.updateProfile);
 
-// @route   POST api/auth/avatar
-// @desc    Upload user avatar
-// @access  Private
+
 const upload = require('../middleware/uploadMiddleware');
 /**
  * @swagger
@@ -174,9 +164,7 @@ const upload = require('../middleware/uploadMiddleware');
  */
 router.post('/avatar', [auth, upload.single('avatar')], authController.uploadAvatar);
 
-// @route   PUT api/auth/password
-// @desc    Change password
-// @access  Private
+
 /**
  * @swagger
  * /api/auth/password:
@@ -201,9 +189,7 @@ router.post('/avatar', [auth, upload.single('avatar')], authController.uploadAva
  */
 router.put('/password', auth, authController.updatePassword);
 
-// @route   PUT api/auth/email
-// @desc    Update email
-// @access  Private
+
 /**
  * @swagger
  * /api/auth/email:
@@ -226,9 +212,7 @@ router.put('/password', auth, authController.updatePassword);
  */
 router.put('/email', auth, authController.updateEmail);
 
-// @route   DELETE api/auth/account
-// @desc    Delete account
-// @access  Private
+
 /**
  * @swagger
  * /api/auth/account:
