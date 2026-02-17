@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from './stores/auth'
+import Sidebar from './components/Sidebar.vue'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -10,32 +11,41 @@ const isAuthPage = computed(() => ['Login', 'Register', 'ForgotPassword'].includ
 </script>
 
 <template>
-  <div class="app-container">
-    <header v-if="!isAuthPage" class="navbar">
+  <!-- Authentication Pages (Full Screen) -->
+  <div v-if="isAuthPage" class="auth-layout">
+    <router-view></router-view>
+  </div>
+
+  <!-- Dashboard App Layout (Sidebar + Content) -->
+  <div v-else class="dashboard-layout">
+    <Sidebar v-if="authStore.isAuthenticated" />
+    
+    <!-- Navbar for non-authenticated home page or public pages if any -->
+    <header v-else class="navbar">
       <div class="brand">
         <router-link to="/">Maxemo Study Room</router-link>
       </div>
-      <nav v-if="authStore.isAuthenticated">
-        <router-link to="/profile">Profile</router-link>
-        <button @click="authStore.logout" class="nav-logout">Logout</button>
-      </nav>
-      <nav v-else>
+      <nav>
+        <router-link to="/rooms">Browse Rooms</router-link>
         <router-link to="/login">Login</router-link>
         <router-link to="/register" class="nav-cta">Register</router-link>
       </nav>
     </header>
 
-    <main :class="{ 'no-padding': isAuthPage }">
+    <main :class="{ 'with-sidebar': authStore.isAuthenticated }">
       <router-view></router-view>
     </main>
   </div>
 </template>
 
 <style scoped>
-.app-container {
+.auth-layout {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+}
+
+.dashboard-layout {
+  min-height: 100vh;
+  background-color: #FFFFFF;
 }
 
 .navbar {
@@ -43,14 +53,14 @@ const isAuthPage = computed(() => ['Login', 'Register', 'ForgotPassword'].includ
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  background-color: var(--color-background-soft);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background-color: white;
+  border-bottom: 1px solid #E5E7EB;
 }
 
 .brand a {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #646cff;
+  color: #2563EB;
   text-decoration: none;
 }
 
@@ -62,47 +72,24 @@ nav {
 
 nav a {
   text-decoration: none;
-  color: var(--color-text);
+  color: #374151;
   font-weight: 500;
 }
 
-nav a:hover,
-nav a.router-link-active {
-  color: #646cff;
-}
-
 .nav-cta {
-  background-color: #646cff;
+  background-color: #2563EB;
   color: white !important;
   padding: 0.5rem 1rem;
   border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-.nav-cta:hover {
-  background-color: #535bf2;
-}
-
-.nav-logout {
-  background: none;
-  border: 1px solid var(--color-border);
-  color: var(--color-text);
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.nav-logout:hover {
-  border-color: #ff4646;
-  color: #ff4646;
 }
 
 main {
-  flex: 1;
   padding: 2rem;
 }
 
-main.no-padding {
-  padding: 0;
+main.with-sidebar {
+  margin-left: 260px; /* Width of sidebar */
+  padding: 2rem 3rem;
+  max-width: 1400px;
 }
 </style>

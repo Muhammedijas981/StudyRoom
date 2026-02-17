@@ -23,7 +23,7 @@ export const useAuthStore = defineStore('auth', {
         this.token = res.data.token
         localStorage.setItem('token', res.data.token)
         this.user = res.data.user
-        router.push('/profile')
+        router.push('/rooms')
       } catch (err) {
         this.error = err.response?.data?.errors?.[0]?.msg || err.response?.data?.msg || 'Registration failed'
         throw err
@@ -40,7 +40,7 @@ export const useAuthStore = defineStore('auth', {
         this.token = res.data.token
         localStorage.setItem('token', res.data.token)
         this.user = res.data.user
-        router.push('/profile')
+        router.push('/rooms')
       } catch (err) {
         this.error = err.response?.data?.msg || 'Login failed'
         throw err
@@ -70,6 +70,43 @@ export const useAuthStore = defineStore('auth', {
       this.user = null
       localStorage.removeItem('token')
       router.push('/login')
+    },
+
+    async updatePassword(passwordData) {
+      try {
+        const res = await axios.put('http://localhost:5000/api/auth/password', passwordData, {
+          headers: { 'x-auth-token': this.token }
+        })
+        return res.data
+      } catch (err) {
+        throw err.response?.data?.msg || 'Failed to update password'
+      }
+    },
+
+    async updateEmail(emailData) {
+      try {
+        const res = await axios.put('http://localhost:5000/api/auth/email', emailData, {
+          headers: { 'x-auth-token': this.token }
+        })
+        // Update local user state
+        if (this.user && res.data.email) {
+          this.user.email = res.data.email
+        }
+        return res.data
+      } catch (err) {
+        throw err.response?.data?.msg || 'Failed to update email'
+      }
+    },
+
+    async deleteAccount() {
+      try {
+        await axios.delete('http://localhost:5000/api/auth/account', {
+          headers: { 'x-auth-token': this.token }
+        })
+        this.logout()
+      } catch (err) {
+        throw err.response?.data?.msg || 'Failed to delete account'
+      }
     }
   }
 })

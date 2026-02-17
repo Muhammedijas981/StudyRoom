@@ -27,6 +27,46 @@ const routes = [
     component: () => import('../views/auth/ForgotPassword.vue')
   },
   {
+    path: '/rooms',
+    name: 'RoomList',
+    component: () => import('../views/rooms/RoomList.vue')
+  },
+  {
+    path: '/my-rooms',
+    name: 'MyRooms',
+    component: () => import('../views/rooms/MyRooms.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/saved-materials',
+    name: 'SavedMaterials',
+    component: () => import('../views/SavedMaterials.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: () => import('../views/Settings.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/reported-materials',
+    name: 'ReportedMaterials',
+    component: () => import('../views/ReportedMaterials.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/rooms/create',
+    name: 'CreateRoom',
+    component: () => import('../views/rooms/CreateRoom.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/rooms/:id',
+    name: 'RoomDetails',
+    component: () => import('../views/rooms/RoomDetails.vue')
+  },
+  {
     path: '/profile',
     name: 'Profile',
     component: Profile,

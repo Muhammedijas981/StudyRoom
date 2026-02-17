@@ -35,6 +35,13 @@ app.get('/', (req, res) => {
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/rooms', require('./routes/roomRoutes'));
+app.use('/uploads', express.static('uploads'));
+
+// Swagger Documentation
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpecs = require('./config/swagger');
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
 // 404 handler
 app.use((req, res) => {
