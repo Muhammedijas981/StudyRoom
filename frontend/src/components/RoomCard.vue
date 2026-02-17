@@ -2,6 +2,10 @@
   <div class="room-card" @mouseleave="showMenu = false">
     <div class="card-image" :style="{ backgroundImage: `url(${getRoomImage(room)})` }">
       <span class="topic-badge">{{ room.topic }}</span>
+      <span v-if="isOwner" class="owner-badge">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg>
+        Owner
+      </span>
     </div>
     
     <div class="card-content">
@@ -128,6 +132,22 @@ const getRoomImage = (room) => {
   font-size: 0.75rem;
   font-weight: 500;
   backdrop-filter: blur(4px);
+}
+
+.owner-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background-color: #3B82F6;
+    color: white;
+    padding: 0.25rem 0.625rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .card-content {

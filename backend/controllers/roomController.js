@@ -267,18 +267,194 @@ exports.uploadMaterial = async (req, res) => {
 exports.getMaterials = async (req, res) => {
     try {
         const roomId = req.params.id;
+        const userId = req.user ? req.user.id : null;
         
-        const materials = await pool.query(`
+        let query = `
             SELECT m.*, u.full_name as uploaded_by_name 
+            ${userId ? `, (SELECT EXISTS(SELECT 1 FROM saved_materials sm WHERE sm.material_id = m.id AND sm.user_id = $2)) as is_saved` : ''}
             FROM room_materials m 
             JOIN users u ON m.user_id = u.id 
             WHERE m.room_id = $1 
             ORDER BY m.created_at DESC
-        `, [roomId]);
+        `;
+        
+        const params = [roomId];
+        if (userId) {
+            params.push(userId);
+        }
+
+        const materials = await pool.query(query, params);
 
         res.json(materials.rows);
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server error');
     }
+};
+
+// Toggle save material
+// @route   POST api/materials/:id/save
+// @desc    Toggle save status of a material
+// @access  Private
+exports.toggleSaveMaterial = async (req, res) => {
+    try {
+        const materialId = req.params.id;
+        const userId = req.user.id;
+
+        // Check if material exists
+        const material = await pool.query('SELECT * FROM room_materials WHERE id = $1', [materialId]);
+        if (material.rows.length === 0) {
+            return res.status(404).json({ msg: 'Material not found' });
+        }
+
+        // Check if already saved
+        const saved = await pool.query('SELECT * FROM saved_materials WHERE user_id = $1 AND material_id = $2', [userId, materialId]);
+
+        if (saved.rows.length > 0) {
+            // Unsave
+            await pool.query('DELETE FROM saved_materials WHERE user_id = $1 AND material_id = $2', [userId, materialId]);
+            res.json({ msg: 'Material unsaved', is_saved: false });
+        } else {
+            // Save
+            await pool.query('INSERT INTO saved_materials (user_id, material_id) VALUES ($1, $2)', [userId, materialId]);
+            res.json({ msg: 'Material saved', is_saved: true });
+        }
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+};
+
+// Get saved materials
+// @route   GET api/materials/saved
+// @desc    Get all saved materials for user
+// @access  Private
+exports.getSavedMaterials = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { search } = req.query;
+
+        let query = `
+            SELECT 
+                m.*, 
+                sm.created_at as saved_at,
+                r.name as room_name,
+                r.topic as room_topic
+            FROM saved_materials sm
+            JOIN room_materials m ON sm.material_id = m.id
+            JOIN study_rooms r ON m.room_id = r.id
+            WHERE sm.user_id = $1
+        `;
+        
+        const params = [userId];
+
+        if (search) {
+            query += ` AND m.file_name ILIKE $2`;
+            params.push(`%${search}%`);
+        }
+
+        query += ` ORDER BY sm.created_at DESC`;
+
+        const materials = await pool.query(query, params);
+        res.json(materials.rows);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+};
+
+// Clear all saved materials
+// @route   DELETE api/rooms/materials/saved
+// @desc    Clear all saved materials
+// @access  Private
+exports.clearSavedMaterials = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        await pool.query('DELETE FROM saved_materials WHERE user_id = $1', [userId]);
+        res.json({ msg: 'All materials cleared' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+};
+
+// Delete a room
+// @route   DELETE api/rooms/:id
+// @desc    Delete a room
+// @access  Private (Owner only)
+exports.deleteRoom = async (req, res) => {
+    try {
+        const roomId = req.params.id;
+        const userId = req.user.id;
+
+        // Check ownership
+        const room = await pool.query('SELECT * FROM study_rooms WHERE id = $1', [roomId]);
+        
+        if (room.rows.length === 0) {
+            return res.status(404).json({ msg: 'Room not found' });
+        }
+
+        if (room.rows[0].created_by !== userId) {
+            return res.status(401).json({ msg: 'User not authorized' });
+        }
+
+        await pool.query('DELETE FROM study_rooms WHERE id = $1', [roomId]);
+
+        res.json({ msg: 'Room removed' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+};
+
+// Get my rooms
+// @route   GET api/rooms/my-rooms
+// @desc    Get current user's rooms (created or joined)
+// @access  Private
+exports.getMyRooms = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { filter } = req.query; // 'created' or 'joined' (default)
+
+    let queryText = '';
+    let params = [userId];
+
+    if (filter === 'created') {
+      // Get rooms created by the user
+      queryText = `
+        SELECT 
+          s.*, 
+          u.full_name as creator_name,
+          (SELECT COUNT(rm.user_id) FROM room_members rm WHERE rm.room_id = s.id) as current_members,
+          (SELECT EXISTS(SELECT 1 FROM room_members rm2 WHERE rm2.room_id = s.id AND rm2.user_id = $1)) as is_member 
+        FROM study_rooms s 
+        LEFT JOIN users u ON s.created_by = u.id
+        WHERE s.created_by = $1
+        ORDER BY s.created_at DESC
+      `;
+    } else {
+      // Get all active rooms (joined)
+      // Since creating a room doesn't strictly mean joining in current logic (unless we auto-join), 
+      // we need to decide if we query room_members or (room_members OR created_by).
+      // Assuming creators join their rooms:
+      queryText = `
+        SELECT 
+          s.*, 
+          u.full_name as creator_name,
+          (SELECT COUNT(rm.user_id) FROM room_members rm WHERE rm.room_id = s.id) as current_members,
+          true as is_member
+        FROM study_rooms s 
+        JOIN room_members rm_join ON s.id = rm_join.room_id
+        LEFT JOIN users u ON s.created_by = u.id
+        WHERE rm_join.user_id = $1
+        ORDER BY s.created_at DESC
+      `;
+    }
+
+    const { rows } = await pool.query(queryText, params);
+    res.json(rows);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
 };

@@ -35,6 +35,21 @@ router.post(
 // So adding `auth` middleware to `getAllRooms` is the safest way to get `req.user`.
 router.get('/', auth, roomController.getAllRooms);
 
+// @route   GET api/rooms/my-rooms
+// @desc    Get user's rooms
+// @access  Private
+router.get('/my-rooms', auth, roomController.getMyRooms);
+
+// @route   GET api/rooms/materials/saved
+// @desc    Get saved materials
+// @access  Private
+router.get('/materials/saved', auth, roomController.getSavedMaterials);
+
+// @route   DELETE api/rooms/materials/saved
+// @desc    Clear all saved materials
+// @access  Private
+router.delete('/materials/saved', auth, roomController.clearSavedMaterials);
+
 // @route   GET api/rooms/:id
 // @desc    Get room by ID
 // @access  Public
@@ -66,6 +81,11 @@ router.put(
     roomController.updateRoom
 );
 
+// @route   DELETE api/rooms/:id
+// @desc    Delete a room
+// @access  Private (Owner only)
+router.delete('/:id', auth, roomController.deleteRoom);
+
 // @route   POST api/rooms/:id/materials
 // @desc    Upload material to room
 // @access  Private (Member only)
@@ -82,5 +102,10 @@ router.post(
 // @desc    Get all materials for a room
 // @access  Public (or Private)
 router.get('/:id/materials', roomController.getMaterials);
+
+// @route   POST api/rooms/materials/:id/save
+// @desc    Toggle save status of material
+// @access  Private
+router.post('/materials/:id/save', auth, roomController.toggleSaveMaterial);
 
 module.exports = router;

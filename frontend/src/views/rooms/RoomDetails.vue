@@ -107,6 +107,10 @@
             </div>
           </div>
           <div class="file-actions">
+            <button @click.prevent="toggleSave(file)" class="btn-icon" :title="file.is_saved ? 'Unsave' : 'Save'" style="margin-right: 0.5rem; background: none; border: none; cursor: pointer;">
+                <svg v-if="file.is_saved" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#2563EB" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #6B7280;"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+            </button>
             <a :href="`http://localhost:5000/${file.file_path}`" target="_blank" class="btn-download" download>
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Download
@@ -198,11 +202,30 @@ const allMembers = computed(() => {
 
 const fetchMaterials = async (roomId) => {
     try {
-        const authStore = useAuthStore()
-        const res = await axios.get(`http://localhost:5000/api/rooms/${roomId}/materials`)
+        const config = authStore.token ? { headers: { 'x-auth-token': authStore.token } } : {}
+        const res = await axios.get(`http://localhost:5000/api/rooms/${roomId}/materials`, config)
         materials.value = res.data
     } catch (err) {
         console.error('Failed to fetch materials', err)
+    }
+}
+
+const toggleSave = async (file) => {
+    try {
+        if (!authStore.isAuthenticated) {
+            alert('Please login to save materials.')
+            return
+        }
+        const res = await roomStore.toggleSaveMaterial(file.id)
+        if (materials.value) {
+            const index = materials.value.findIndex(m => m.id === file.id)
+            if (index !== -1) {
+                materials.value[index].is_saved = res.is_saved
+            }
+        }
+    } catch (err) {
+        console.error('Failed to toggle save', err)
+        alert('Failed to save material: ' + err.message)
     }
 }
 

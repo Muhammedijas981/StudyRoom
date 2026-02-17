@@ -6,6 +6,7 @@ export const useRoomStore = defineStore('room', {
   state: () => ({
     rooms: [],
     currentRoom: null,
+    savedMaterials: [],
     loading: false,
     error: null
   }),
@@ -22,6 +23,22 @@ export const useRoomStore = defineStore('room', {
         this.rooms = res.data
       } catch (err) {
         this.error = err.response?.data?.msg || 'Error fetching rooms'
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchMyRooms(filter = 'joined') {
+      this.loading = true
+      this.error = null
+      const authStore = useAuthStore()
+      try {
+        const res = await axios.get(`http://localhost:5000/api/rooms/my-rooms?filter=${filter}`, {
+          headers: { 'x-auth-token': authStore.token }
+        })
+        this.rooms = res.data
+      } catch (err) {
+        this.error = err.response?.data?.msg || 'Error fetching my rooms'
       } finally {
         this.loading = false
       }
@@ -148,6 +165,52 @@ export const useRoomStore = defineStore('room', {
         throw err
       } finally {
         this.loading = false
+      }
+    },
+
+    async fetchSavedMaterials(search = '') {
+      this.loading = true
+      this.error = null
+      const authStore = useAuthStore()
+      try {
+        const query = search ? `?search=${search}` : ''
+        const res = await axios.get(`http://localhost:5000/api/rooms/materials/saved${query}`, {
+          headers: { 'x-auth-token': authStore.token }
+        })
+        this.savedMaterials = res.data
+      } catch (err) {
+        this.error = err.response?.data?.msg || 'Error fetching saved materials'
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async toggleSaveMaterial(materialId) {
+      const authStore = useAuthStore()
+      try {
+        const res = await axios.post(`http://localhost:5000/api/rooms/materials/${materialId}/save`, {}, {
+          headers: { 'x-auth-token': authStore.token }
+        })
+        
+        // Update local state if in savedMaterials list
+        if (!res.data.is_saved) {
+            this.savedMaterials = this.savedMaterials.filter(m => m.id !== materialId)
+        }
+        return res.data
+      } catch (err) {
+        throw err
+      }
+    },
+
+    async clearSavedMaterials() {
+      const authStore = useAuthStore()
+      try {
+        await axios.delete('http://localhost:5000/api/rooms/materials/saved', {
+            headers: { 'x-auth-token': authStore.token }
+        })
+        this.savedMaterials = []
+      } catch (err) {
+        throw err
       }
     }
   }

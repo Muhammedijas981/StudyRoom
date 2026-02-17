@@ -199,3 +199,75 @@ exports.uploadAvatar = async (req, res) => {
         res.status(500).send('Server error');
     }
 };
+// @route   PUT api/auth/password
+// @desc    Change password
+// @access  Private
+exports.updatePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const userId = req.user.id;
+
+        // Get user details (including password hash)
+        const user = await pool.query('SELECT password_hash FROM users WHERE id = $1', [userId]);
+        
+        if (user.rows.length === 0) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+
+        const isMatch = await bcrypt.compare(currentPassword, user.rows[0].password_hash);
+        if (!isMatch) {
+            return res.status(400).json({ msg: 'Incorrect current password' });
+        }
+
+        // Hash new password
+        const salt = await bcrypt.genSalt(10);
+        const password_hash = await bcrypt.hash(newPassword, salt);
+
+        await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [password_hash, userId]);
+
+        res.json({ msg: 'Password updated successfully' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+};
+
+// @route   PUT api/auth/email
+// @desc    Update email
+// @access  Private
+exports.updateEmail = async (req, res) => {
+    try {
+        const { newEmail } = req.body;
+        const userId = req.user.id;
+
+        // Check if email already exists
+        const userCheck = await pool.query('SELECT * FROM users WHERE email = $1 AND id != $2', [newEmail, userId]);
+        if (userCheck.rows.length > 0) {
+            return res.status(400).json({ msg: 'Email already in use' });
+        }
+
+        await pool.query('UPDATE users SET email = $1 WHERE id = $2', [newEmail, userId]);
+
+        res.json({ msg: 'Email updated successfully', email: newEmail });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+};
+
+// @route   DELETE api/auth/account
+// @desc    Delete account
+// @access  Private
+exports.deleteAccount = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // Delete user (cascade handles relations)
+        await pool.query('DELETE FROM users WHERE id = $1', [userId]);
+
+        res.json({ msg: 'Account deleted successfully' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+};

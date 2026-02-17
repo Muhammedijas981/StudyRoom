@@ -45,4 +45,19 @@ router.put('/profile', auth, authController.updateProfile);
 const upload = require('../middleware/uploadMiddleware');
 router.post('/avatar', [auth, upload.single('avatar')], authController.uploadAvatar);
 
+// @route   PUT api/auth/password
+// @desc    Change password
+// @access  Private
+router.put('/password', auth, authController.updatePassword);
+
+// @route   PUT api/auth/email
+// @desc    Update email
+// @access  Private
+router.put('/email', auth, authController.updateEmail);
+
+// @route   DELETE api/auth/account
+// @desc    Delete account
+// @access  Private
+router.delete('/account', auth, authController.deleteAccount);
+
 module.exports = router;

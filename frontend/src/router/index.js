@@ -32,6 +32,24 @@ const routes = [
     component: () => import('../views/rooms/RoomList.vue')
   },
   {
+    path: '/my-rooms',
+    name: 'MyRooms',
+    component: () => import('../views/rooms/MyRooms.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/saved-materials',
+    name: 'SavedMaterials',
+    component: () => import('../views/SavedMaterials.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: () => import('../views/Settings.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/rooms/create',
     name: 'CreateRoom',
     component: () => import('../views/rooms/CreateRoom.vue'),
