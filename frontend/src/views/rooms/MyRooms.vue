@@ -148,68 +148,87 @@ const handleDeleteConfirm = async () => {
 .my-rooms-content {
     width: 100%;
 }
+
+/* Header Section - Mobile First */
 .header-section {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column; /* Stack on mobile */
+    gap: 1.5rem;
     margin-bottom: 2rem;
 }
+
 .title-area h1 {
-    font-size: 1.875rem;
+    font-size: 1.5rem; /* Smaller font on mobile */
     font-weight: 800;
     color: #111827;
     margin-bottom: 0.5rem;
 }
+
 .title-area p {
     color: #6B7280;
+    font-size: 0.95rem;
 }
+
 .create-btn {
     background-color: #2563EB;
     color: white;
     border: none;
-    padding: 0.625rem 1.25rem;
+    padding: 0.75rem 1.25rem;
     border-radius: 8px;
     font-weight: 500;
     cursor: pointer;
     display: flex;
     align-items: center;
+    justify-content: center; /* Center content */
     gap: 0.5rem;
     transition: background-color 0.2s;
+    width: 100%; /* Full width on mobile */
+    font-size: 1rem;
 }
+
 .create-btn:hover {
     background-color: #1D4ED8;
 }
 
-/* Tabs */
+/* Tabs - Mobile First */
 .tabs {
     display: flex;
-    gap: 2rem;
+    gap: 1rem;
     border-bottom: 1px solid #E5E7EB;
     margin-bottom: 2rem;
+    overflow-x: auto; /* Scrollable on mobile */
+    padding-bottom: 2px; /* Prevent scrollbar overlap with border */
+    -webkit-overflow-scrolling: touch;
 }
+
 .tab-btn {
     background: none;
     border: none;
-    padding: 0.75rem 0;
+    padding: 0.75rem 0.5rem;
     font-size: 0.95rem;
     color: #6B7280;
     cursor: pointer;
     position: relative;
     font-weight: 500;
+    white-space: nowrap; /* Prevent text wrap */
+    flex-shrink: 0;
 }
+
 .tab-btn.active {
     color: #2563EB;
     font-weight: 600;
 }
+
 .tab-btn.active::after {
     content: '';
     position: absolute;
-    bottom: -1px;
+    bottom: -3px; /* Align with border-bottom of tabs */
     left: 0;
     width: 100%;
     height: 2px;
     background-color: #2563EB;
 }
+
 .tab-btn:disabled {
     cursor: not-allowed;
     opacity: 0.5;
@@ -217,14 +236,17 @@ const handleDeleteConfirm = async () => {
 
 .rooms-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: 1fr; /* Single column on mobile */
     gap: 1.5rem;
 }
-.loading-state {
+
+.loading-state, .empty-state {
     display: flex;
     justify-content: center;
     padding: 4rem 0;
+    color: #6B7280;
 }
+
 .loader {
     border: 3px solid #f3f3f3;
     border-radius: 50%;
@@ -233,13 +255,41 @@ const handleDeleteConfirm = async () => {
     height: 24px;
     animation: spin 1s linear infinite;
 }
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
 .empty-state {
     text-align: center;
-    padding: 4rem 0;
-    color: #6B7280;
+    flex-direction: column;
+}
+
+/* Desktop Overrides */
+@media (min-width: 640px) {
+    .header-section {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .title-area h1 {
+        font-size: 1.875rem;
+    }
+
+    .create-btn {
+        width: auto;
+        padding: 0.625rem 1.25rem;
+        font-size: 0.95rem;
+    }
+
+    .rooms-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+    
+    .tabs {
+        gap: 2rem;
+    }
 }
 </style>

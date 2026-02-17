@@ -231,7 +231,15 @@ const handleSubmit = async () => {
 
 .form-row {
     display: flex;
-    gap: 1rem;
+    flex-direction: column; /* Stack on mobile */
+    gap: 1.25rem;
+}
+
+@media (min-width: 640px) {
+    .form-row {
+        flex-direction: row;
+        gap: 1rem;
+    }
 }
 
 .form-group.half {

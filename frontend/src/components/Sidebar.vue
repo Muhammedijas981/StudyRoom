@@ -75,6 +75,7 @@ const getInitials = (name) => {
 </script>
 
 <style scoped>
+
 .sidebar {
   width: 260px;
   background-color: #F9FAFB;
@@ -86,6 +87,20 @@ const getInitials = (name) => {
   left: 0;
   top: 0;
   padding: 1.5rem 1rem;
+  z-index: 50;
+  transition: transform 0.3s ease-in-out;
+  transform: translateX(-100%); /* Hidden by default on mobile */
+}
+
+/* Open state class (applied by parent) */
+.sidebar.mobile-open {
+  transform: translateX(0);
+}
+
+@media (min-width: 1024px) {
+  .sidebar {
+    transform: translateX(0); /* Always visible on large screens */
+  }
 }
 
 .sidebar-header {

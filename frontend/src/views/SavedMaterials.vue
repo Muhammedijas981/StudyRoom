@@ -203,15 +203,16 @@ const formatDate = (dateStr) => {
     padding-bottom: 2rem;
 }
 
+/* Mobile First Header */
 .header-section {
     margin-bottom: 2rem;
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    flex-direction: column; /* Stack on mobile */
+    gap: 1.5rem;
 }
 
 .title-area h1 {
-    font-size: 1.875rem;
+    font-size: 1.5rem;
     font-weight: 800;
     color: #111827;
     margin-bottom: 0.5rem;
@@ -219,20 +220,23 @@ const formatDate = (dateStr) => {
 
 .title-area p {
     color: #6B7280;
+    font-size: 0.95rem;
 }
 
 .btn-clear {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1rem;
     border: 1px solid #E5E7EB;
     border-radius: 6px;
     background-color: white;
     color: #6B7280;
     cursor: pointer;
     font-weight: 500;
-    font-size: 0.9rem;
+    font-size: 1rem;
+    width: 100%; /* Full width */
     transition: all 0.2s;
 }
 
@@ -242,20 +246,17 @@ const formatDate = (dateStr) => {
     border-color: #FCA5A5;
 }
 
+/* Mobile Controls */
 .controls-section {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    gap: 1rem;
     margin-bottom: 2rem;
-    gap: 1.5rem;
-    flex-wrap: wrap;
 }
 
 .search-bar {
     position: relative;
-    flex: 1;
-    min-width: 280px;
-    max-width: 400px;
+    width: 100%;
 }
 
 .search-bar input {
@@ -284,17 +285,22 @@ const formatDate = (dateStr) => {
 .filters {
     display: flex;
     gap: 0.5rem;
+    flex-wrap: wrap;
+    width: 100%;
 }
 
 .filter-btn {
-    background: none;
-    border: none;
+    flex: 1;
+    background: white;
+    border: 1px solid #E5E7EB;
     padding: 0.5rem 1rem;
     border-radius: 6px;
     color: #6B7280;
     cursor: pointer;
     font-weight: 500;
     transition: all 0.2s;
+    text-align: center;
+    min-width: 80px;
 }
 
 .filter-btn:hover {
@@ -305,13 +311,14 @@ const formatDate = (dateStr) => {
 .filter-btn.active {
     background-color: #EFF6FF;
     color: #2563EB;
+    border-color: #BFDBFE;
 }
 
 /* Materials Grid */
 .materials-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: 1fr;
+    gap: 1rem;
 }
 
 .material-card {
@@ -456,5 +463,51 @@ const formatDate = (dateStr) => {
 }
 .empty-state p {
     color: #6B7280;
+}
+
+/* Desktop Overrides */
+@media (min-width: 640px) {
+    .header-section {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+    
+    .title-area h1 {
+        font-size: 1.875rem;
+    }
+    
+    .btn-clear {
+        width: auto;
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+    }
+    
+    .controls-section {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+    }
+    
+    .search-bar {
+        max-width: 400px;
+        flex: 1;
+    }
+    
+    .filter-btn {
+        flex: 0 0 auto;
+        border: none;
+        background: none;
+    }
+    
+    .filter-btn.active {
+        border: none;
+    }
+    
+    .materials-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
 }
 </style>

@@ -142,7 +142,7 @@ const confirmDelete = (material) => {
 }
 
 .title-area h1 {
-  font-size: 1.875rem;
+  font-size: 1.5rem;
   font-weight: 800;
   color: #111827;
   margin-bottom: 0.5rem;
@@ -150,6 +150,7 @@ const confirmDelete = (material) => {
 
 .title-area p {
   color: #6B7280;
+  font-size: 0.95rem;
 }
 
 .loading-state {
@@ -201,7 +202,7 @@ const confirmDelete = (material) => {
   background: white;
   border: 1px solid #E5E7EB;
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 1.25rem;
   transition: all 0.2s;
 }
 
@@ -209,10 +210,11 @@ const confirmDelete = (material) => {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
+/* Mobile First Card Header */
 .card-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  flex-direction: column; /* Stack on mobile */
+  gap: 1rem;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid #F3F4F6;
@@ -220,6 +222,7 @@ const confirmDelete = (material) => {
 
 .file-info {
   display: flex;
+  flex-direction: column; /* Stack icon and text */
   gap: 1rem;
   flex: 1;
 }
@@ -232,6 +235,7 @@ const confirmDelete = (material) => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  align-self: flex-start;
 }
 
 .icon-pdf { background-color: #FEF2F2; color: #DC2626; }
@@ -242,14 +246,17 @@ const confirmDelete = (material) => {
   font-size: 1rem;
   font-weight: 600;
   color: #111827;
-  margin: 0 0 0.25rem 0;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.3;
 }
 
 .file-meta {
   font-size: 0.875rem;
   color: #6B7280;
   display: flex;
+  flex-wrap: wrap; /* Wrap on mobile */
   gap: 0.5rem;
+  line-height: 1.4;
 }
 
 .report-badge {
@@ -262,6 +269,7 @@ const confirmDelete = (material) => {
   border-radius: 999px;
   font-size: 0.875rem;
   font-weight: 600;
+  align-self: flex-start; /* Don't stretch */
 }
 
 .reports-section {
@@ -290,8 +298,10 @@ const confirmDelete = (material) => {
 
 .report-header {
   display: flex;
+  flex-direction: column; /* Stack name/date on mobile if needed, but row usually fits */
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 0.25rem;
   margin-bottom: 0.5rem;
 }
 
@@ -315,15 +325,15 @@ const confirmDelete = (material) => {
 
 .card-actions {
   display: flex;
-  gap: 0.75rem;
   justify-content: flex-end;
 }
 
 .btn-danger {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
+  padding: 0.75rem 1rem;
   border-radius: 6px;
   font-weight: 500;
   font-size: 0.9rem;
@@ -331,16 +341,52 @@ const confirmDelete = (material) => {
   transition: all 0.2s;
   border: none;
   text-decoration: none;
-}
-
-
-
-.btn-danger {
   background-color: #DC2626;
   color: white;
+  width: 100%; /* Full width button */
 }
 
 .btn-danger:hover {
   background-color: #B91C1C;
+}
+
+/* Desktop Overrides */
+@media (min-width: 640px) {
+  .title-area h1 {
+    font-size: 1.875rem;
+  }
+
+  .material-card {
+    padding: 1.5rem;
+  }
+
+  .card-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  
+  .file-info {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  
+  .file-name {
+    margin-bottom: 0.25rem;
+  }
+  
+  .report-badge {
+    align-self: auto;
+  }
+  
+  .report-header {
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .btn-danger {
+    width: auto;
+    padding: 0.625rem 1.25rem;
+  }
 }
 </style>
