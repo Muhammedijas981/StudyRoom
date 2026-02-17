@@ -12,14 +12,20 @@ export const useRoomStore = defineStore('room', {
   }),
 
   actions: {
-    async fetchRooms(searchQuery = '') {
+    async fetchRooms(searchQuery = '', sort = 'newest') {
       this.loading = true
       this.error = null
       const authStore = useAuthStore()
       try {
         const config = authStore.token ? { headers: { 'x-auth-token': authStore.token } } : {}
-        const query = searchQuery ? `?search=${searchQuery}` : ''
-        const res = await axios.get(`http://localhost:5000/api/rooms${query}`, config)
+        
+        const params = new URLSearchParams()
+        if (searchQuery) params.append('search', searchQuery)
+        if (sort) params.append('sort', sort)
+        
+        const queryString = params.toString() ? `?${params.toString()}` : ''
+        
+        const res = await axios.get(`http://localhost:5000/api/rooms${queryString}`, config)
         this.rooms = res.data
       } catch (err) {
         this.error = err.response?.data?.msg || 'Error fetching rooms'

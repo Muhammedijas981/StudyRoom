@@ -50,6 +50,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/reported-materials',
+    name: 'ReportedMaterials',
+    component: () => import('../views/ReportedMaterials.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/rooms/create',
     name: 'CreateRoom',
     component: () => import('../views/rooms/CreateRoom.vue'),

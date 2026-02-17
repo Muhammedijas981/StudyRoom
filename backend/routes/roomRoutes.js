@@ -50,6 +50,11 @@ router.get('/materials/saved', auth, roomController.getSavedMaterials);
 // @access  Private
 router.delete('/materials/saved', auth, roomController.clearSavedMaterials);
 
+// @route   GET api/rooms/materials/reported/all
+// @desc    Get all reported materials
+// @access  Private
+router.get('/materials/reported/all', auth, roomController.getAllReportedMaterials);
+
 // @route   GET api/rooms/:id
 // @desc    Get room by ID
 // @access  Public
@@ -107,5 +112,15 @@ router.get('/:id/materials', roomController.getMaterials);
 // @desc    Toggle save status of material
 // @access  Private
 router.post('/materials/:id/save', auth, roomController.toggleSaveMaterial);
+
+// @route   POST api/rooms/materials/:id/report
+// @desc    Report a study material
+// @access  Private
+router.post('/materials/:id/report', auth, roomController.reportMaterial);
+
+// @route   GET api/rooms/materials/:id/reports
+// @desc    Get all reports for a material
+// @access  Private
+router.get('/materials/:id/reports', auth, roomController.getMaterialReports);
 
 module.exports = router;

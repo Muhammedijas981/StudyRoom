@@ -37,24 +37,25 @@
       
       <div class="filter-dropdown-wrapper">
         <button class="filter-btn" @click="toggleFilters">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-          Filters
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M6 12h12M9 18h6"/></svg>
+          Sort
         </button>
         
         <div v-if="showFilters" class="filter-menu">
             <div 
-                v-for="topic in topics" 
-                :key="topic" 
+                v-for="option in sortOptions" 
+                :key="option.value" 
                 class="filter-option"
-                @click="selectFilter(topic)"
+                :class="{ 'active-sort': selectedFilter === option.value }"
+                @click="selectFilter(option.value)"
             >
-                {{ topic }}
+                {{ option.label }}
             </div>
         </div>
       </div>
 
-      <div v-if="selectedFilter" class="active-filter-tag">
-        {{ selectedFilter }}
+      <div v-if="selectedFilter && selectedFilter !== 'newest'" class="active-filter-tag">
+        Sort: {{ getFilterLabel(selectedFilter) }}
         <button class="close-tag" @click="clearFilter">×</button>
       </div>
     </div>
@@ -100,8 +101,11 @@ const roomStore = useRoomStore()
 const searchQuery = ref('')
 const showCreateModal = ref(false)
 const showFilters = ref(false)
-const selectedFilter = ref(null)
-const topics = ['Computer Science', 'Mathematics', 'Physics', 'History', 'Literature', 'Art', 'Biology']
+const selectedFilter = ref('newest')
+const sortOptions = [
+    { label: 'Newest First', value: 'newest' },
+    { label: 'Oldest First', value: 'oldest' }
+]
 
 let searchTimeout = null
 
@@ -114,7 +118,7 @@ onMounted(() => {
 const handleSearch = () => {
   if (searchTimeout) clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => {
-    roomStore.fetchRooms(searchQuery.value)
+    roomStore.fetchRooms(searchQuery.value, selectedFilter.value)
   }, 300)
 }
 
@@ -122,19 +126,24 @@ const toggleFilters = () => {
   showFilters.value = !showFilters.value
 }
 
-const selectFilter = (topic) => {
-  selectedFilter.value = topic
+const selectFilter = (value) => {
+  selectedFilter.value = value
   showFilters.value = false
-  roomStore.fetchRooms(topic) 
+  roomStore.fetchRooms(searchQuery.value, value) 
 }
 
 const clearFilter = () => {
-  selectedFilter.value = null
-  roomStore.fetchRooms(searchQuery.value)
+  selectedFilter.value = 'newest'
+  roomStore.fetchRooms(searchQuery.value, 'newest')
+}
+
+const getFilterLabel = (value) => {
+    const opt = sortOptions.find(o => o.value === value)
+    return opt ? opt.label : value
 }
 
 const handleRoomCreated = () => {
-  // roomStore.fetchRooms() // Optional
+  roomStore.fetchRooms(searchQuery.value, selectedFilter.value)
 }
 
 const openEditModal = (room) => {
@@ -362,6 +371,11 @@ const handleDeleteConfirm = async () => {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+.filter-option:hover, .filter-option.active-sort {
+  background-color: #F3F4F6;
+  color: #2563EB;
 }
 
 .empty-state {

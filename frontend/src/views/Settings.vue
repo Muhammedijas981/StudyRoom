@@ -81,21 +81,43 @@
              <button @click="handleDeleteAccount" class="btn-danger">Delete account</button>
         </div>
     </div>
+
+
+    <ActionConfirmationModal
+        v-if="showDeleteModal"
+        title="Delete Account"
+        :target-name="user?.email || 'your account'"
+        action-type="permanently delete"
+        required-text="delete my account"
+        confirm-button-text="Delete Account"
+        processing-text="Deleting..."
+        variant="danger"
+        :is-processing="loading.delete"
+        @close="showDeleteModal = false"
+        @confirm="confirmDeleteAccount"
+    >
+        <template #message>
+            Are you absolutely sure you want to delete your account? This action cannot be undone. 
+            <strong>All your joined rooms, saved materials, and study history will be permanently lost.</strong>
+        </template>
+    </ActionConfirmationModal>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import ActionConfirmationModal from '../components/ActionConfirmationModal.vue'
 
 const authStore = useAuthStore()
 const user = computed(() => authStore.user)
 
-const loading = reactive({ email: false, password: false })
+const loading = reactive({ email: false, password: false, delete: false })
 const emailMsg = ref('')
 const emailMsgType = ref('')
 const passwordMsg = ref('')
 const passwordMsgType = ref('')
+const showDeleteModal = ref(false)
 
 const emailForm = reactive({
     newEmail: '',
@@ -181,14 +203,19 @@ const handlePasswordUpdate = async () => {
     }
 }
 
-const handleDeleteAccount = async () => {
-    if (confirm('Are you absolutely sure you want to delete your account? This action cannot be undone.')) {
-        try {
-            await authStore.deleteAccount()
-            // Logout handled in store, router push to login
-        } catch (err) {
-            alert('Failed to delete account: ' + err)
-        }
+const handleDeleteAccount = () => {
+    showDeleteModal.value = true
+}
+
+const confirmDeleteAccount = async () => {
+    loading.delete = true
+    try {
+        await authStore.deleteAccount()
+        // Logout handled in store
+    } catch (err) {
+        alert('Failed to delete account: ' + err)
+        loading.delete = false
+        showDeleteModal.value = false
     }
 }
 </script>

@@ -36,28 +36,44 @@ exports.createRoom = async (req, res) => {
 // @access  Public (or Private if preferred)
 // Get all rooms (with member count)
 exports.getAllRooms = async (req, res) => {
-  const { search } = req.query;
+  const { search, sort } = req.query;
   const userId = req.user ? req.user.id : null;
 
   try {
+    let params = [];
+    let paramIndex = 1;
+    let userIdParamIndex = 0;
+
+    if (userId) {
+        userIdParamIndex = paramIndex;
+        params.push(userId);
+        paramIndex++;
+    }
+
+    // Correctly reference userId parameter index if it exists, for is_member check
+    const isMemberSubquery = userId 
+        ? `, (SELECT EXISTS(SELECT 1 FROM room_members rm2 WHERE rm2.room_id = s.id AND rm2.user_id = $${userIdParamIndex})) as is_member` 
+        : '';
+
     let query = `
       SELECT 
         s.*, 
         u.full_name as creator_name,
         (SELECT COUNT(rm.user_id) FROM room_members rm WHERE rm.room_id = s.id) as current_members
-        ${userId ? `, (SELECT EXISTS(SELECT 1 FROM room_members rm2 WHERE rm2.room_id = s.id AND rm2.user_id = $${search ? 2 : 1})) as is_member` : ''}
+        ${isMemberSubquery}
       FROM study_rooms s 
       LEFT JOIN users u ON s.created_by = u.id
     `;
-    let params = [];
-    if (userId) {
-        params.push(userId);
-    }
+    
     if (search) {
-      query += ` WHERE s.name ILIKE $${params.length + 1} OR s.topic ILIKE $${params.length + 1}`;
+      query += ` WHERE s.name ILIKE $${paramIndex} OR s.topic ILIKE $${paramIndex}`;
       params.push(`%${search}%`);
+      paramIndex++;
     }
-    query += ' ORDER BY s.created_at DESC';
+
+    const sortOrder = sort === 'oldest' ? 'ASC' : 'DESC';
+    query += ` ORDER BY s.created_at ${sortOrder}`;
+
     const rooms = await pool.query(query, params);
     res.json(rooms.rows);
   } catch (err) {
@@ -458,3 +474,105 @@ exports.getMyRooms = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
+
+// @route   POST api/rooms/materials/:id/report
+// @desc    Report a study material
+// @access  Private
+exports.reportMaterial = async (req, res) => {
+  try {
+    const materialId = req.params.id;
+    const userId = req.user.id;
+    const { comment } = req.body;
+
+    // Validate comment
+    if (!comment || comment.trim().length === 0) {
+      return res.status(400).json({ msg: 'Comment is required' });
+    }
+
+    if (comment.length > 500) {
+      return res.status(400).json({ msg: 'Comment must be 500 characters or less' });
+    }
+
+    // Check if material exists
+    const material = await pool.query('SELECT * FROM room_materials WHERE id = $1', [materialId]);
+    if (material.rows.length === 0) {
+      return res.status(404).json({ msg: 'Material not found' });
+    }
+
+    // Insert report
+    await pool.query(
+      'INSERT INTO material_reports (material_id, user_id, comment) VALUES ($1, $2, $3)',
+      [materialId, userId, comment.trim()]
+    );
+
+    res.json({ msg: 'Material reported successfully' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
+
+// @route   GET api/rooms/materials/:id/reports
+// @desc    Get all reports for a material (admin/creator only)
+// @access  Private
+exports.getMaterialReports = async (req, res) => {
+  try {
+    const materialId = req.params.id;
+
+    const reports = await pool.query(`
+      SELECT 
+        r.id,
+        r.comment,
+        r.created_at,
+        u.full_name as reporter_name,
+        u.email as reporter_email
+      FROM material_reports r
+      JOIN users u ON r.user_id = u.id
+      WHERE r.material_id = $1
+      ORDER BY r.created_at DESC
+    `, [materialId]);
+
+    res.json(reports.rows);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
+
+// @route   GET api/rooms/materials/reported/all
+// @desc    Get all reported materials (admin view)
+// @access  Private
+exports.getAllReportedMaterials = async (req, res) => {
+  try {
+    const materials = await pool.query(`
+      SELECT 
+        m.*,
+        r.name as room_name,
+        r.topic as room_topic,
+        u.full_name as uploader_name,
+        COUNT(DISTINCT mr.id) as report_count,
+        MAX(mr.created_at) as last_reported_at,
+        json_agg(
+          json_build_object(
+            'id', mr.id,
+            'comment', mr.comment,
+            'reporter_name', reporter.full_name,
+            'created_at', mr.created_at
+          ) ORDER BY mr.created_at DESC
+        ) as reports
+      FROM room_materials m
+      JOIN material_reports mr ON m.id = mr.material_id
+      JOIN study_rooms r ON m.room_id = r.id
+      LEFT JOIN users u ON m.user_id = u.id
+      LEFT JOIN users reporter ON mr.user_id = reporter.id
+      GROUP BY m.id, r.name, r.topic, u.full_name
+      ORDER BY last_reported_at DESC
+    `);
+
+    res.json(materials.rows);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
+

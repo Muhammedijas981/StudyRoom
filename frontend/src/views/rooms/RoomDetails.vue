@@ -111,7 +111,10 @@
                 <svg v-if="file.is_saved" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#2563EB" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
                 <svg v-else xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #6B7280;"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
             </button>
-            <a :href="`http://localhost:5000/${file.file_path}`" target="_blank" class="btn-download" download>
+            <button @click.prevent="openReportModal(file)" class="btn-icon" title="Report" style="margin-right: 0.5rem; background: none; border: none; cursor: pointer;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #DC2626;"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+            </button>
+            <a href="#" @click.prevent="downloadFile(file)" class="btn-download">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Download
             </a>
@@ -169,6 +172,14 @@
     @close="showLeaveModal = false"
     @confirm="handleLeaveConfirm"
   />
+
+  <ReportMaterialModal
+    v-if="showReportModal && materialToReport"
+    :material-id="materialToReport.id"
+    :material-name="materialToReport.file_name"
+    @close="showReportModal = false"
+    @reported="handleReportSubmitted"
+  />
 </template>
 
 <script setup>
@@ -178,6 +189,7 @@ import { useRoomStore } from '../../stores/room'
 import { useAuthStore } from '../../stores/auth' 
 import axios from 'axios'
 import ActionConfirmationModal from '../../components/ActionConfirmationModal.vue'
+import ReportMaterialModal from '../../components/ReportMaterialModal.vue'
 
 const route = useRoute()
 const roomStore = useRoomStore()
@@ -187,6 +199,8 @@ const isProcessing = ref(false)
 const showMembersModal = ref(false)
 const materials = ref([])
 const fileInput = ref(null)
+const showReportModal = ref(false)
+const materialToReport = ref(null)
 
 const isOwner = computed(() => {
     return localRoom.value && authStore.user && localRoom.value.created_by === authStore.user.id
@@ -267,6 +281,40 @@ const handleFileUpload = async (event) => {
         isProcessing.value = false
         event.target.value = ''
     }
+}
+
+const downloadFile = async (file) => {
+    try {
+        const response = await axios.get(`http://localhost:5000/${file.file_path}`, {
+            responseType: 'blob'
+        });
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', file.file_name); 
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Also open preview in new tab
+        window.open(`http://localhost:5000/${file.file_path}`, '_blank');
+        
+        setTimeout(() => window.URL.revokeObjectURL(url), 100);
+    } catch (error) {
+        console.error('Download failed:', error);
+        window.open(`http://localhost:5000/${file.file_path}`, '_blank');
+    }
+}
+
+const openReportModal = (file) => {
+    materialToReport.value = file
+    showReportModal.value = true
+}
+
+const handleReportSubmitted = () => {
+    // Optional: Could show a success notification here
+    showReportModal.value = false
+    materialToReport.value = null
 }
 
 const fetchRoomData = async () => {
