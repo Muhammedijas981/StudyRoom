@@ -3,13 +3,11 @@ import { useAuthStore } from '../stores/auth'
 import Login from '../views/auth/Login.vue'
 import Register from '../views/auth/Register.vue'
 import Profile from '../views/Profile.vue'
-import HelloWorld from '../components/HelloWorld.vue'
 
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: HelloWorld
+    redirect: '/login'
   },
   {
     path: '/login',
