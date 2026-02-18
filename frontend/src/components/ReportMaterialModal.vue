@@ -56,7 +56,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import axios from 'axios'
+import api from '../utils/api'
 import { useAuthStore } from '../stores/auth'
 
 const props = defineProps({
@@ -95,12 +95,9 @@ const handleSubmit = async () => {
   isSubmitting.value = true
 
   try {
-    await axios.post(
-      `http://localhost:5000/api/rooms/materials/${props.materialId}/report`,
-      { comment: comment.value },
-      {
-        headers: { 'x-auth-token': authStore.token }
-      }
+    await api.post(
+      `/api/rooms/materials/${props.materialId}/report`,
+      { comment: comment.value }
     )
 
     success.value = 'Report submitted successfully. Thank you for helping keep our community safe.'

@@ -61,10 +61,12 @@ import { useAuthStore } from '../stores/auth'
 
 const authStore = useAuthStore()
 
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+
 const getAvatarUrl = (path) => {
     if (!path) return ''
     if (path.startsWith('http')) return path
-    return `http://localhost:5000/${path}`
+    return `${apiUrl}/${path}`
 }
 
 const getInitials = (name) => {

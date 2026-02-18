@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
+import api from '../utils/api'
 import router from '../router'
 
 export const useAuthStore = defineStore('auth', {
@@ -19,7 +19,7 @@ export const useAuthStore = defineStore('auth', {
       this.loading = true
       this.error = null
       try {
-        const res = await axios.post('http://localhost:5000/api/auth/register', userData)
+        const res = await api.post('/api/auth/register', userData)
         this.token = res.data.token
         localStorage.setItem('token', res.data.token)
         this.user = res.data.user
@@ -36,7 +36,7 @@ export const useAuthStore = defineStore('auth', {
       this.loading = true
       this.error = null
       try {
-        const res = await axios.post('http://localhost:5000/api/auth/login', credentials)
+        const res = await api.post('/api/auth/login', credentials)
         this.token = res.data.token
         localStorage.setItem('token', res.data.token)
         this.user = res.data.user
@@ -54,9 +54,7 @@ export const useAuthStore = defineStore('auth', {
       
       this.loading = true
       try {
-        const res = await axios.get('http://localhost:5000/api/auth/me', {
-          headers: { 'x-auth-token': this.token }
-        })
+        const res = await api.get('/api/auth/me')
         this.user = res.data
       } catch (err) {
         this.logout()
@@ -74,9 +72,7 @@ export const useAuthStore = defineStore('auth', {
 
     async updatePassword(passwordData) {
       try {
-        const res = await axios.put('http://localhost:5000/api/auth/password', passwordData, {
-          headers: { 'x-auth-token': this.token }
-        })
+        const res = await api.put('/api/auth/password', passwordData)
         return res.data
       } catch (err) {
         throw err.response?.data?.msg || 'Failed to update password'
@@ -85,9 +81,7 @@ export const useAuthStore = defineStore('auth', {
 
     async updateEmail(emailData) {
       try {
-        const res = await axios.put('http://localhost:5000/api/auth/email', emailData, {
-          headers: { 'x-auth-token': this.token }
-        })
+        const res = await api.put('/api/auth/email', emailData)
         // Update local user state
         if (this.user && res.data.email) {
           this.user.email = res.data.email
@@ -100,9 +94,7 @@ export const useAuthStore = defineStore('auth', {
 
     async deleteAccount() {
       try {
-        await axios.delete('http://localhost:5000/api/auth/account', {
-          headers: { 'x-auth-token': this.token }
-        })
+        await api.delete('/api/auth/account')
         this.logout()
       } catch (err) {
         throw err.response?.data?.msg || 'Failed to delete account'

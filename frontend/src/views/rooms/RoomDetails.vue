@@ -187,7 +187,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useRoomStore } from '../../stores/room'
 import { useAuthStore } from '../../stores/auth' 
-import axios from 'axios'
+import api from '../../utils/api'
 import ActionConfirmationModal from '../../components/ActionConfirmationModal.vue'
 import ReportMaterialModal from '../../components/ReportMaterialModal.vue'
 
@@ -201,6 +201,8 @@ const materials = ref([])
 const fileInput = ref(null)
 const showReportModal = ref(false)
 const materialToReport = ref(null)
+
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
 const isOwner = computed(() => {
     return localRoom.value && authStore.user && localRoom.value.created_by === authStore.user.id
@@ -216,8 +218,7 @@ const allMembers = computed(() => {
 
 const fetchMaterials = async (roomId) => {
     try {
-        const config = authStore.token ? { headers: { 'x-auth-token': authStore.token } } : {}
-        const res = await axios.get(`http://localhost:5000/api/rooms/${roomId}/materials`, config)
+        const res = await api.get(`/api/rooms/${roomId}/materials`)
         materials.value = res.data
     } catch (err) {
         console.error('Failed to fetch materials', err)
@@ -267,12 +268,7 @@ const handleFileUpload = async (event) => {
     
     isProcessing.value = true
     try {
-        await axios.post(`http://localhost:5000/api/rooms/${localRoom.value.id}/materials`, formData, {
-            headers: {
-                'x-auth-token': authStore.token,
-                'Content-Type': 'multipart/form-data'
-            }
-        })
+        await api.post(`/api/rooms/${localRoom.value.id}/materials`, formData)
         await fetchMaterials(localRoom.value.id)
     } catch (err) {
         console.error('Upload failed', err)
@@ -285,7 +281,7 @@ const handleFileUpload = async (event) => {
 
 const downloadFile = async (file) => {
     try {
-        const response = await axios.get(`http://localhost:5000/${file.file_path}`, {
+        const response = await api.get(`/${file.file_path}`, {
             responseType: 'blob'
         });
         const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -297,12 +293,12 @@ const downloadFile = async (file) => {
         document.body.removeChild(link);
         
         // Also open preview in new tab
-        window.open(`http://localhost:5000/${file.file_path}`, '_blank');
+        window.open(`${apiUrl}/${file.file_path}`, '_blank');
         
         setTimeout(() => window.URL.revokeObjectURL(url), 100);
     } catch (error) {
         console.error('Download failed:', error);
-        window.open(`http://localhost:5000/${file.file_path}`, '_blank');
+        window.open(`${apiUrl}/${file.file_path}`, '_blank');
     }
 }
 
@@ -374,7 +370,7 @@ const getAvatarUrl = (member) => {
         if (member.avatar_url.startsWith('http')) {
             return member.avatar_url
         }
-        return `http://localhost:5000/${member.avatar_url}`
+        return `${apiUrl}/${member.avatar_url}`
     }
     return `https://ui-avatars.com/api/?name=${member.full_name}&background=random`
 }

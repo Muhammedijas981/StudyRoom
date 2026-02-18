@@ -1,30 +1,16 @@
--- Create Database (run this separately if needed)
--- CREATE DATABASE studyroom_db;
-
--- Connect to the database
--- \c studyroom_db;
-
--- This is a placeholder file for your database schema
--- You can add your tables here when you're ready to build the features
-
--- Create Users Table
+-- Users Table
 CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
   full_name VARCHAR(255) NOT NULL,
   email VARCHAR(255) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
   avatar_url VARCHAR(255),
+  major VARCHAR(255),
+  bio TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Insert a test user (password: 'password123')
--- Note: In a real app, passwords should be hashed. This is just for initial schema verification if needed manually.
--- INSERT INTO users (full_name, email, password_hash) VALUES ('Test User', 'test@example.com', '$2b$10$YourHashedPasswordHere');
-
--- Verify
-SELECT * FROM users;
-
--- Create Study Rooms Table
+-- Study Rooms Table
 CREATE TABLE IF NOT EXISTS study_rooms (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
@@ -36,3 +22,39 @@ CREATE TABLE IF NOT EXISTS study_rooms (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Room Members Table (Many-to-Many: User <-> Room)
+CREATE TABLE IF NOT EXISTS room_members (
+  room_id INTEGER REFERENCES study_rooms(id) ON DELETE CASCADE,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (room_id, user_id)
+);
+
+-- Materials Table
+CREATE TABLE IF NOT EXISTS room_materials (
+  id SERIAL PRIMARY KEY,
+  room_id INTEGER REFERENCES study_rooms(id) ON DELETE CASCADE,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  file_name VARCHAR(255) NOT NULL,
+  file_path VARCHAR(255) NOT NULL,
+  file_size INTEGER,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Saved Materials Table (User Bookmarks)
+CREATE TABLE IF NOT EXISTS saved_materials (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  material_id INTEGER REFERENCES room_materials(id) ON DELETE CASCADE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(user_id, material_id)
+);
+
+-- Material Reports Table
+CREATE TABLE IF NOT EXISTS material_reports (
+  id SERIAL PRIMARY KEY,
+  material_id INTEGER REFERENCES room_materials(id) ON DELETE CASCADE,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  comment TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

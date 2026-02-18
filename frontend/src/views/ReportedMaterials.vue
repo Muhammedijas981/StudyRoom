@@ -75,7 +75,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import api from '../utils/api'
 import { useAuthStore } from '../stores/auth'
 
 const authStore = useAuthStore()
@@ -85,9 +85,7 @@ const loading = ref(false)
 const fetchReportedMaterials = async () => {
   loading.value = true
   try {
-    const res = await axios.get('http://localhost:5000/api/rooms/materials/reported/all', {
-      headers: { 'x-auth-token': authStore.token }
-    })
+    const res = await api.get('/api/rooms/materials/reported/all')
     materials.value = res.data
   } catch (err) {
     console.error('Failed to fetch reported materials:', err)
