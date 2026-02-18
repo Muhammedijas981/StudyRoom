@@ -187,7 +187,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useRoomStore } from '../../stores/room'
 import { useAuthStore } from '../../stores/auth' 
-import axios from 'axios'
+import api from '../../utils/api'
 import ActionConfirmationModal from '../../components/ActionConfirmationModal.vue'
 import ReportMaterialModal from '../../components/ReportMaterialModal.vue'
 
@@ -201,6 +201,8 @@ const materials = ref([])
 const fileInput = ref(null)
 const showReportModal = ref(false)
 const materialToReport = ref(null)
+
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
 const isOwner = computed(() => {
     return localRoom.value && authStore.user && localRoom.value.created_by === authStore.user.id
@@ -216,8 +218,7 @@ const allMembers = computed(() => {
 
 const fetchMaterials = async (roomId) => {
     try {
-        const config = authStore.token ? { headers: { 'x-auth-token': authStore.token } } : {}
-        const res = await axios.get(`http://localhost:5000/api/rooms/${roomId}/materials`, config)
+        const res = await api.get(`/api/rooms/${roomId}/materials`)
         materials.value = res.data
     } catch (err) {
         console.error('Failed to fetch materials', err)
@@ -267,12 +268,7 @@ const handleFileUpload = async (event) => {
     
     isProcessing.value = true
     try {
-        await axios.post(`http://localhost:5000/api/rooms/${localRoom.value.id}/materials`, formData, {
-            headers: {
-                'x-auth-token': authStore.token,
-                'Content-Type': 'multipart/form-data'
-            }
-        })
+        await api.post(`/api/rooms/${localRoom.value.id}/materials`, formData)
         await fetchMaterials(localRoom.value.id)
     } catch (err) {
         console.error('Upload failed', err)
@@ -285,7 +281,7 @@ const handleFileUpload = async (event) => {
 
 const downloadFile = async (file) => {
     try {
-        const response = await axios.get(`http://localhost:5000/${file.file_path}`, {
+        const response = await api.get(`/${file.file_path}`, {
             responseType: 'blob'
         });
         const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -297,12 +293,12 @@ const downloadFile = async (file) => {
         document.body.removeChild(link);
         
         // Also open preview in new tab
-        window.open(`http://localhost:5000/${file.file_path}`, '_blank');
+        window.open(`${apiUrl}/${file.file_path}`, '_blank');
         
         setTimeout(() => window.URL.revokeObjectURL(url), 100);
     } catch (error) {
         console.error('Download failed:', error);
-        window.open(`http://localhost:5000/${file.file_path}`, '_blank');
+        window.open(`${apiUrl}/${file.file_path}`, '_blank');
     }
 }
 
@@ -374,7 +370,7 @@ const getAvatarUrl = (member) => {
         if (member.avatar_url.startsWith('http')) {
             return member.avatar_url
         }
-        return `http://localhost:5000/${member.avatar_url}`
+        return `${apiUrl}/${member.avatar_url}`
     }
     return `https://ui-avatars.com/api/?name=${member.full_name}&background=random`
 }
@@ -397,7 +393,7 @@ const formatDate = (dateString) => {
   width: 100%;
 }
 
-/* Header Styles */
+/* Mobile First Styles */
 .room-header {
   margin-bottom: 2rem;
 }
@@ -422,22 +418,24 @@ const formatDate = (dateString) => {
 
 .title-row {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  flex-direction: column; /* Stack on mobile */
+  gap: 1rem;
   margin-bottom: 1rem;
 }
 
 .title-left {
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  flex-direction: column; /* Stack badge under title on mobile */
+  align-items: flex-start;
+  gap: 0.5rem;
 }
 
 h1 {
-  font-size: 2rem;
+  font-size: 1.75rem; /* Smaller for mobile */
   font-weight: 800;
   color: #111827;
   margin: 0;
+  line-height: 1.2;
 }
 
 .topic-badge {
@@ -451,20 +449,24 @@ h1 {
 
 .action-buttons {
   display: flex;
+  flex-direction: column; /* Stack buttons on mobile */
   gap: 0.75rem;
+  width: 100%;
 }
 
 .btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1rem;
   border-radius: 6px;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   cursor: pointer;
   background-color: white;
   transition: all 0.2s;
+  width: 100%; /* Full width */
 }
 
 .btn-outline {
@@ -502,22 +504,24 @@ h1 {
 
 .meta-row {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
   color: #6B7280;
   font-size: 0.9rem;
   border-bottom: 1px solid #F3F4F6;
   padding-bottom: 1.5rem;
   margin-bottom: 0;
-  flex-wrap: wrap; 
 }
 
 .members-info {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
-.users-icon {
+.users-icon, .clock-icon {
   color: #9CA3AF;
 }
 
@@ -564,18 +568,8 @@ h1 {
   gap: 0.5rem;
 }
 
-.clock-icon {
-  color: #9CA3AF;
-}
-
-.divider {
-  display: none;
-}
-
 .separator-dot {
-    margin: 0 1rem;
-    color: #D1D5DB;
-    font-weight: bold;
+    display: none; /* Hide on mobile */
 }
 
 /* Materials Section */
@@ -635,8 +629,9 @@ h1 {
 
 .material-card {
   display: flex;
-  align-items: center;
-  padding: 1rem 1.5rem;
+  flex-direction: column; /* Stack on mobile */
+  gap: 1rem;
+  padding: 1rem;
   border: 1px solid #E5E7EB;
   border-radius: 8px;
   background-color: white;
@@ -654,7 +649,7 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 1rem;
+  align-self: flex-start; /* Align top left */
 }
 
 .file-icon.red {
@@ -680,8 +675,11 @@ h1 {
 
 .file-actions {
   display: flex;
+  justify-content: space-between;
+  width: 100%;
+  border-top: 1px solid #F3F4F6;
+  padding-top: 0.75rem;
   align-items: center;
-  gap: 0.75rem;
 }
 
 .btn-download {
@@ -723,6 +721,69 @@ h1 {
   color: #DC2626;
 }
 
+/* Desktop Overrides */
+@media (min-width: 640px) {
+  .title-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  
+  .title-left {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  h1 {
+    font-size: 2rem;
+  }
+  
+  .action-buttons {
+    flex-direction: row;
+    width: auto;
+  }
+  
+  .btn {
+    width: auto;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .meta-row {
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .separator-dot {
+    display: inline;
+    margin: 0 1rem;
+    color: #D1D5DB;
+    font-weight: bold;
+  }
+  
+  .material-card {
+    flex-direction: row;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    gap: 1rem;
+  }
+  
+  .file-icon {
+    align-self: center;
+    margin-right: 1rem;
+  }
+  
+  .file-actions {
+    width: auto;
+    border-top: none;
+    padding-top: 0;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+}
+
+/* Modal Styles - Shared Code */
 .loading-state {
   display: flex;
   justify-content: center;
@@ -743,7 +804,6 @@ h1 {
   100% { transform: rotate(360deg); }
 }
 
-/* Modal Styles */
 .modal-overlay {
     position: fixed;
     top: 0;

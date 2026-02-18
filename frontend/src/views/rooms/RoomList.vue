@@ -193,15 +193,16 @@ const handleDeleteConfirm = async () => {
   width: 100%;
 }
 
+/* Mobile First Styles */
 .header-section {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 1rem;
   margin-bottom: 2rem;
 }
 
 .title-area h1 {
-  font-size: 1.875rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #111827;
   margin-bottom: 0.5rem;
@@ -210,23 +211,25 @@ const handleDeleteConfirm = async () => {
 
 .title-area p {
   color: #6B7280;
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 .create-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   background-color: #2563EB;
   color: white;
-  padding: 0.625rem 1.25rem;
+  padding: 0.75rem 1.25rem;
   border-radius: 6px;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 1rem;
   text-decoration: none;
   transition: background-color 0.2s;
   border: none;
   cursor: pointer;
+  width: 100%; /* Full width on mobile */
 }
 
 .create-btn:hover {
@@ -235,15 +238,15 @@ const handleDeleteConfirm = async () => {
 
 .filter-bar {
   display: flex;
-  align-items: center;
+  flex-direction: column; /* Stack on mobile */
   gap: 1rem;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
 }
 
 .search-box {
   position: relative;
   flex: 1;
-  max-width: 480px;
+  width: 100%;
 }
 
 .search-icon {
@@ -270,9 +273,14 @@ const handleDeleteConfirm = async () => {
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
 }
 
+.filter-dropdown-wrapper {
+  width: 100%;
+}
+
 .filter-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   background-color: white;
@@ -282,6 +290,7 @@ const handleDeleteConfirm = async () => {
   font-weight: 500;
   font-size: 0.95rem;
   cursor: pointer;
+  width: 100%; /* Full width on mobile */
 }
 
 .filter-btn:hover {
@@ -291,42 +300,41 @@ const handleDeleteConfirm = async () => {
 .active-filter-tag {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
   background-color: #EFF6FF;
   color: #2563EB;
-  padding: 0.375rem 0.75rem;
-  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  border-radius: 8px; /* Slightly softer radius */
   font-size: 0.875rem;
   font-weight: 500;
-}
-
-.filter-dropdown-wrapper {
-  position: relative;
+  width: 100%; /* Full width for better tap target */
 }
 
 .filter-menu {
   position: absolute;
   top: 100%;
   right: 0;
+  left: 0; /* Full width dropdown on mobile */
   background: white;
   border: 1px solid #E5E7EB;
   border-radius: 6px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   margin-top: 0.5rem;
   z-index: 50;
-  min-width: 180px;
   max-height: 300px;
   overflow-y: auto;
 }
 
 .filter-option {
-  padding: 0.75rem 1rem;
+  padding: 1rem; /* Larger touch target */
   cursor: pointer;
   color: #374151;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  text-align: center;
 }
 
-.filter-option:hover {
+.filter-option:hover, .filter-option.active-sort {
   background-color: #F3F4F6;
   color: #2563EB;
 }
@@ -335,12 +343,10 @@ const handleDeleteConfirm = async () => {
   background: none;
   border: none;
   color: #60A5FA;
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   cursor: pointer;
-  padding: 0;
+  padding: 0.25rem;
   line-height: 1;
-  display: flex;
-  align-items: center;
 }
 
 .close-tag:hover {
@@ -349,7 +355,7 @@ const handleDeleteConfirm = async () => {
 
 .rooms-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: 1fr; /* Single column default */
   gap: 1.5rem;
 }
 
@@ -373,14 +379,62 @@ const handleDeleteConfirm = async () => {
   100% { transform: rotate(360deg); }
 }
 
-.filter-option:hover, .filter-option.active-sort {
-  background-color: #F3F4F6;
-  color: #2563EB;
-}
-
 .empty-state {
   text-align: center;
   padding: 3rem;
   color: #6B7280;
+}
+
+/* Tablet & Desktop Overrides */
+@media (min-width: 640px) {
+  .header-section {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .title-area h1 {
+    font-size: 1.875rem;
+  }
+  
+  .create-btn {
+    width: auto;
+    font-size: 0.9rem;
+    padding: 0.625rem 1.25rem;
+  }
+  
+  .filter-bar {
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .filter-dropdown-wrapper {
+    width: auto;
+  }
+  
+  .filter-btn {
+    width: auto;
+  }
+  
+  .filter-menu {
+    border-radius: 6px;
+    min-width: 180px;
+    left: auto; /* Reset left */
+  }
+  
+  .filter-option {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.9rem;
+  }
+  
+  .rooms-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+  
+  .active-filter-tag {
+    width: auto;
+    border-radius: 999px;
+  }
 }
 </style>

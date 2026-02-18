@@ -9,10 +9,20 @@ const runSchema = async () => {
 
     console.log('Running schema...');
     
-    // Split by semicolons to run individual queries if needed, 
-    // but pool.query can often handle multiple statements if configured (though sometimes strictly one).
-    // Let's try running it as one block first.
-    await pool.query(schemaSql);
+    // Remove comments and split by semicolon
+    const cleanSql = schemaSql
+      .split('\n')
+      .filter(line => !line.trim().startsWith('--')) // Remove comment lines
+      .join('\n');
+
+    const queries = cleanSql
+      .split(';')
+      .map(q => q.trim())
+      .filter(q => q.length > 0);
+
+    for (const query of queries) {
+      await pool.query(query);
+    }
     
     console.log('✅ Schema applied successfully');
     process.exit(0);

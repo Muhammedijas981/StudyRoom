@@ -80,9 +80,11 @@ const handleDelete = () => {
     emit('delete', props.room)
 }
 
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+
 const getRoomImage = (room) => {
   if (room.cover_image) {
-    return `http://localhost:5000/${room.cover_image}`;
+    return `${apiUrl}/${room.cover_image}`;
   }
   
   // Fallback to topic-based images

@@ -141,11 +141,12 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
-import axios from 'axios'
+import api from '../utils/api'
 
 const authStore = useAuthStore()
 const fileInput = ref(null)
 const isSaving = ref(false)
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
 const form = ref({
   firstName: '',
@@ -172,7 +173,7 @@ watch(() => authStore.user, () => {
 const getAvatarUrl = (path, name) => {
     if (path) {
         if (path.startsWith('http')) return path
-        return `http://localhost:5000/${path}`
+        return `${apiUrl}/${path}`
     }
     return `https://ui-avatars.com/api/?name=${name}&background=random&size=128`
 }
@@ -199,12 +200,7 @@ const handleAvatarUpload = async (event) => {
   formData.append('avatar', file)
 
   try {
-    await axios.post('http://localhost:5000/api/auth/avatar', formData, {
-      headers: {
-        'x-auth-token': authStore.token,
-        'Content-Type': 'multipart/form-data'
-      }
-    })
+    await api.post('/api/auth/avatar', formData)
     // Refresh user data to get new avatar URL
     await authStore.fetchUser()
   } catch (err) {
@@ -224,12 +220,10 @@ const saveProfile = async () => {
   try {
     const fullName = `${form.value.firstName} ${form.value.lastName}`.trim()
     
-    await axios.put('http://localhost:5000/api/auth/profile', {
+    await api.put('/api/auth/profile', {
       full_name: fullName,
       major: form.value.major,
       bio: form.value.bio
-    }, {
-      headers: { 'x-auth-token': authStore.token }
     })
     
     // Refresh user data
