@@ -2,12 +2,12 @@
 
 This is my submission for the Maxemo Full Stack Assessment: a study room platform designed for students to share materials, notes, and collaborate effectively.
 
-## � Live Demo
+## Live Demo
 
 -   **Frontend Application**: [https://studyroom.ijas.space/login](https://studyroom.ijas.space/)
 -   **API Documentation**: [https://studyroom-backend-vuzs.onrender.com/api-docs](https://studyroom-backend-vuzs.onrender.com/api-docs)
 
-## �🎯 Project Overview
+## 🎯 Project Overview
 
 This platform enables students to:
 -   **Create & Customize Profiles**: Manage personal information and view joined study groups.
